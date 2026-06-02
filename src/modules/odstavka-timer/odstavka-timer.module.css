@@ -1,0 +1,94 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.pickerWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--md-sys-color-secondary);
+  text-align: center;
+}
+
+.select {
+  padding: 10px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  cursor: pointer;
+}
+
+.sep {
+  font-size: 1.8rem;
+  font-weight: 700;
+  padding-top: 14px;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background-color: var(--md-sys-color-surface-variant);
+  border-left: 4px solid transparent;
+}
+
+.winter {
+  border-left-color: #60a5fa;
+}
+
+.summer {
+  border-left-color: #f59e0b;
+}
+
+.resultLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resultSeason {
+  font-size: var(--md-sys-typescale-body-medium-font);
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface);
+}
+
+.resultMonths {
+  font-size: 0.7rem;
+  color: var(--md-sys-color-secondary);
+}
+
+.resultTime {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--md-sys-color-primary);
+}

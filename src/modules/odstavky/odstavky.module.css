@@ -1,0 +1,96 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.inputGroup {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8px;
+}
+
+.select {
+  padding: 8px 12px;
+  border-radius: var(--md-sys-shape-corner-small);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: var(--md-sys-color-primary);
+}
+
+.checkButton {
+  padding: 10px;
+  border: none;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.checkButton:hover {
+  opacity: 0.9;
+}
+
+.resultBox {
+  padding: 12px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  text-align: center;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  margin-top: 4px;
+}
+
+.okBorder {
+  background-color: #f0fdf4;
+  border-color: #86efac;
+}
+
+.badBorder {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.resLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.okText {
+  color: #16a34a;
+}
+
+.badText {
+  color: #dc2626;
+}
+
+.resDays {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--md-sys-color-on-surface);
+  line-height: 1.1;
+  margin: 4px 0;
+}
+
+.resSub {
+  font-size: 0.75rem;
+  color: var(--md-sys-color-outline);
+}
+
+.legalNote {
+  font-size: 0.7rem;
+  text-align: center;
+  color: var(--md-sys-color-outline);
+  margin-top: auto;
+}
