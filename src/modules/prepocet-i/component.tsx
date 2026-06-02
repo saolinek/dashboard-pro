@@ -26,49 +26,54 @@ export const PowerCalculator: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.row}>
-        <div className={styles.col}>
-          <label className={styles.label}>Napětí U [kV]</label>
+      <div className={styles.inputsSection}>
+        <div className={styles.row}>
+          <div className={styles.col}>
+            <label className={styles.label}>Napětí U [kV]</label>
+            <input
+              type="number"
+              value={voltage}
+              onChange={(e) => setVoltage(parseFloat(e.target.value) || 0)}
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.col}>
+            <label className={styles.label}>Účiník cos φ</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              max="1"
+              value={cosPhi}
+              onChange={(e) => setCosPhi(parseFloat(e.target.value) || 0)}
+              className={styles.input}
+            />
+          </div>
+        </div>
+
+        <div className={styles.inputBlock}>
+          <label className={styles.label}>Proud I [A]</label>
           <input
             type="number"
-            value={voltage}
-            onChange={(e) => setVoltage(parseFloat(e.target.value) || 0)}
+            placeholder="Proud..."
+            value={current}
+            onChange={(e) => setCurrent(e.target.value === '' ? '' : parseFloat(e.target.value))}
             className={styles.input}
           />
         </div>
-        <div className={styles.col}>
-          <label className={styles.label}>Účiník cos φ</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            max="1"
-            value={cosPhi}
-            onChange={(e) => setCosPhi(parseFloat(e.target.value) || 0)}
-            className={styles.input}
-          />
+      </div>
+
+      <div className={styles.resultsSection}>
+        <div className={styles.resultBox}>
+          <span className={styles.resLabel}>Činný výkon (P)</span>
+          <div className={styles.resValWrapper}>
+            <span className={styles.resVal}>{power}</span>
+            <span className={styles.resUnit}>MW</span>
+          </div>
         </div>
-      </div>
-
-      <div className={styles.inputBlock}>
-        <label className={styles.label}>Proud I [A]</label>
-        <input
-          type="number"
-          placeholder="Zadejte proud..."
-          value={current}
-          onChange={(e) => setCurrent(e.target.value === '' ? '' : parseFloat(e.target.value))}
-          className={styles.input}
-        />
-      </div>
-
-      <div className={styles.resultBox}>
-        <span className={styles.resLabel}>Činný výkon (P)</span>
-        <span className={styles.resVal}>{power}</span>
-        <span className={styles.resUnit}>MW</span>
-      </div>
-
-      <div className={styles.footerNote}>
-        P = (U / √3) × I × cos φ × 2
+        <div className={styles.footerNote}>
+          P = (U / √3) × I × cos φ × 2
+        </div>
       </div>
     </div>
   );

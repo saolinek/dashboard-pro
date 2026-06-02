@@ -15,6 +15,7 @@ export const BookmarksComponent: React.FC = () => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [url, setUrl] = useState('');
   const [name, setName] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ export const BookmarksComponent: React.FC = () => {
   const getFaviconUrl = (bookmarkUrl: string) => {
     try {
       const u = new URL(bookmarkUrl);
-      return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=32`;
+      return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=64`; // Increased size to 64 for crisp icons
     } catch {
       return '';
     }
@@ -56,6 +57,7 @@ export const BookmarksComponent: React.FC = () => {
     save(updated);
     setUrl('');
     setName('');
+    setShowAddForm(false);
   };
 
   const remove = (index: number) => {
@@ -109,69 +111,65 @@ export const BookmarksComponent: React.FC = () => {
 
   if (!isMounted) return null;
 
+  if (showAddForm) {
+    return (
+      <div className={styles.formContainer}>
+        <div className={styles.formHeader}>Nová záložka</div>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.inputGroup}>
+            <input
+              type="text"
+              placeholder="https://example.com"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              required
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <input
+              type="text"
+              placeholder="Název záložky"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className={styles.input}
+              maxLength={15}
+            />
+          </div>
+          <div className={styles.formButtons}>
+            <button type="button" onClick={() => setShowAddForm(false)} className={styles.cancelButton}>
+              Zrušit
+            </button>
+            <button type="submit" className={styles.addButton}>
+              Přidat
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  // Display up to 11 bookmarks to make room for the "+" button (total 12 items in a 4x3 grid)
+  const displayedBookmarks = bookmarks.slice(0, 11);
+
   return (
     <div className={styles.container}>
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <input
-          type="text"
-          placeholder="https://example.com"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          required
-          className={styles.input}
-        />
-        <div className={styles.formRow}>
-          <input
-            type="text"
-            placeholder="Název odkazu"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className={styles.input}
-          />
-          <button type="submit" className={styles.addButton}>
-            Přidat
-          </button>
-        </div>
-      </form>
-
-      <div className={styles.actions}>
-        <button onClick={openAll} disabled={bookmarks.length === 0} className={styles.actionBtn}>
-          Otevřít vše
-        </button>
-        <button onClick={exportBookmarks} disabled={bookmarks.length === 0} className={styles.actionBtn}>
-          Export
-        </button>
-        <label className={styles.actionBtnLabel}>
-          Import
-          <input type="file" accept=".json" onChange={handleImport} className={styles.fileInput} />
-        </label>
-      </div>
-
-      <div className={styles.list}>
-        {bookmarks.length === 0 ? (
-          <div className={styles.empty}>Zatím žádné záložky</div>
-        ) : (
-          bookmarks.map((b, idx) => (
-            <div key={b.created + '-' + idx} className={styles.item} onClick={() => window.open(b.url, '_blank')}>
-              <div className={styles.faviconContainer}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getFaviconUrl(b.url)}
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
-                  alt=""
-                  className={styles.favicon}
-                />
-              </div>
-              <div className={styles.info}>
-                <div className={styles.nameText}>{b.name}</div>
-                <div className={styles.urlText}>{b.url}</div>
-              </div>
+      <div className={styles.grid}>
+        {displayedBookmarks.map((b, idx) => (
+          <div key={b.created + '-' + idx} className={styles.appWrapper}>
+            <div className={styles.appIconContainer} onClick={() => window.open(b.url, '_blank')}>
+              <img
+                src={getFaviconUrl(b.url)}
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+                alt=""
+                className={styles.favicon}
+              />
               <button
                 type="button"
-                className={styles.deleteBtn}
+                className={styles.deleteBadge}
                 onClick={(e) => {
                   e.stopPropagation();
                   remove(idx);
@@ -180,8 +178,32 @@ export const BookmarksComponent: React.FC = () => {
                 ✕
               </button>
             </div>
-          ))
-        )}
+            <div className={styles.appName}>{b.name}</div>
+          </div>
+        ))}
+
+        {/* Plus Button inside the grid */}
+        <div className={styles.appWrapper} onClick={() => setShowAddForm(true)}>
+          <div className={`${styles.appIconContainer} ${styles.addBtnContainer}`}>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+          </div>
+          <div className={styles.appName}>Přidat</div>
+        </div>
+      </div>
+
+      <div className={styles.footer}>
+        <button onClick={openAll} disabled={bookmarks.length === 0} className={styles.footerBtn}>
+          Otevřít vše
+        </button>
+        <button onClick={exportBookmarks} disabled={bookmarks.length === 0} className={styles.footerBtn}>
+          Export
+        </button>
+        <label className={styles.footerBtn}>
+          Import
+          <input type="file" accept=".json" onChange={handleImport} className={styles.fileInput} />
+        </label>
       </div>
     </div>
   );

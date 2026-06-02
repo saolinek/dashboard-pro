@@ -18,16 +18,6 @@ export const SortableModule: React.FC<Props> = ({ config }) => {
     isDragging,
   } = useSortable({ id: config.id });
 
-  const moduleHeights: Record<string, string> = {
-    clock: '180px',
-    svatek: '180px',
-    work: '260px',
-    'prepocet-i': '330px',
-    odstavky: '300px',
-    'odstavka-timer': '290px',
-    bookmarks: 'auto',
-  };
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : transition,
@@ -36,7 +26,8 @@ export const SortableModule: React.FC<Props> = ({ config }) => {
     // Minimal grid spanning (w, h)
     gridColumn: `span ${config.w || 1}`,
     gridRow: `span ${config.h || 1}`,
-    height: moduleHeights[config.type] || 'auto',
+    height: '100%',
+    width: '100%',
   };
 
   const moduleDef = moduleRegistry.get(config.type);

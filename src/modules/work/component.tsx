@@ -63,38 +63,40 @@ export const WorkComponent: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.row}>
-        <div className={styles.labelCol}>
-          <span className={styles.label}>Příchod:</span>
-          <span className={styles.valueDisplay}>{minToTime(arrival)}</span>
+      <div className={styles.sliders}>
+        <div className={styles.row}>
+          <div className={styles.labelCol}>
+            <span className={styles.label}>Příchod:</span>
+            <span className={styles.valueDisplay}>{minToTime(arrival)}</span>
+          </div>
+          <input
+            type="range"
+            min="360"
+            max="480"
+            value={arrival}
+            onChange={handleArrivalChange}
+            className={styles.slider}
+          />
         </div>
-        <input
-          type="range"
-          min="360"
-          max="480"
-          value={arrival}
-          onChange={handleArrivalChange}
-          className={styles.slider}
-        />
-      </div>
 
-      <div className={styles.row}>
-        <div className={styles.labelCol}>
-          <span className={styles.label}>Saldo (h):</span>
-          <span className={styles.valueDisplay}>
-            {saldo >= 0 ? '+' : ''}
-            {saldo.toFixed(2)} h
-          </span>
+        <div className={styles.row}>
+          <div className={styles.labelCol}>
+            <span className={styles.label}>Saldo:</span>
+            <span className={styles.valueDisplay}>
+              {saldo >= 0 ? '+' : ''}
+              {saldo.toFixed(2)} h
+            </span>
+          </div>
+          <input
+            type="range"
+            min="-1"
+            max="1"
+            step="0.01"
+            value={saldo}
+            onChange={handleSaldoChange}
+            className={styles.slider}
+          />
         </div>
-        <input
-          type="range"
-          min="-1"
-          max="1"
-          step="0.01"
-          value={saldo}
-          onChange={handleSaldoChange}
-          className={styles.slider}
-        />
       </div>
 
       <div className={styles.resultBox}>

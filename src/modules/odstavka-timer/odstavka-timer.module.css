@@ -1,65 +1,74 @@
 .container {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-direction: row;
+  gap: 12px;
   height: 100%;
+  align-items: center;
 }
 
 .pickerWrapper {
+  flex: 0.9;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .col {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
+  min-width: 0;
 }
 
 .label {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 8px;
+  font-weight: 700;
   text-transform: uppercase;
   color: var(--md-sys-color-secondary);
   text-align: center;
 }
 
 .select {
-  padding: 10px;
-  border-radius: var(--md-sys-shape-corner-medium);
+  padding: 4px;
+  border-radius: var(--md-sys-shape-corner-small);
   border: 1px solid var(--md-sys-color-outline-variant);
   background-color: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
   text-align: center;
   outline: none;
   cursor: pointer;
+  width: 100%;
 }
 
 .sep {
-  font-size: 1.8rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  padding-top: 14px;
+  padding-top: 10px;
 }
 
 .results {
+  flex: 1.1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .resultRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 6px 8px;
   border-radius: var(--md-sys-shape-corner-medium);
   background-color: var(--md-sys-color-surface-variant);
-  border-left: 4px solid transparent;
+  border-left: 3px solid transparent;
+  gap: 4px;
+  min-width: 0;
 }
 
 .winter {
@@ -73,22 +82,30 @@
 .resultLeft {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  min-width: 0;
 }
 
 .resultSeason {
-  font-size: var(--md-sys-typescale-body-medium-font);
+  font-size: 9px;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .resultMonths {
-  font-size: 0.7rem;
+  font-size: 7px;
   color: var(--md-sys-color-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .resultTime {
-  font-size: 1.8rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: var(--md-sys-color-primary);
+  flex-shrink: 0;
 }

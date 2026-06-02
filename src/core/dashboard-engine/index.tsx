@@ -31,11 +31,11 @@ export const DashboardEngine = () => {
   const defaultConfigs: Record<string, { w: number; h: number }> = {
     clock: { w: 1, h: 1 },
     svatek: { w: 1, h: 1 },
-    bookmarks: { w: 1, h: 1 },
-    work: { w: 1, h: 1 },
-    'prepocet-i': { w: 1, h: 1 },
-    odstavky: { w: 1, h: 1 },
-    'odstavka-timer': { w: 1, h: 1 }
+    bookmarks: { w: 2, h: 2 },
+    work: { w: 2, h: 1 },
+    'prepocet-i': { w: 2, h: 1 },
+    odstavky: { w: 2, h: 1 },
+    'odstavka-timer': { w: 2, h: 1 }
   };
 
   useEffect(() => {

@@ -2,81 +2,130 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  justify-content: space-between;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background-color: var(--md-sys-color-surface-variant);
-  padding: 12px;
-  border-radius: var(--md-sys-shape-corner-medium);
-}
-
-.formRow {
-  display: flex;
-  gap: 8px;
-}
-
-.input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background-color: var(--md-sys-color-surface);
-  color: var(--md-sys-color-on-surface);
-  border-radius: var(--md-sys-shape-corner-small);
-  font-size: var(--md-sys-typescale-body-medium-font);
-  outline: none;
   width: 100%;
 }
 
-.input:focus {
-  border-color: var(--md-sys-color-primary);
-}
-
-.addButton {
-  padding: 8px 16px;
-  border: none;
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  border-radius: var(--md-sys-shape-corner-small);
-  font-size: var(--md-sys-typescale-body-medium-font);
-  font-weight: 500;
+.appWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
   cursor: pointer;
+  min-width: 0;
 }
 
-.addButton:hover {
-  opacity: 0.9;
+.appIconContainer {
+  width: 52px;
+  height: 52px;
+  border-radius: 22px; /* iOS squircle-like radius */
+  background-color: var(--md-sys-color-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+  box-shadow: var(--md-sys-elevation-1);
 }
 
-.actions {
+.appWrapper:hover .appIconContainer {
+  transform: scale(1.05);
+  background-color: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.favicon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.appName {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  margin-top: 4px;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.addBtnContainer {
+  color: var(--md-sys-color-primary);
+  border-style: dashed;
+  border-width: 1.5px;
+}
+
+.deleteBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #dc2626;
+  color: white;
+  border: 1.5px solid var(--md-sys-color-surface);
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 5;
+}
+
+.appWrapper:hover .deleteBadge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.deleteBadge:hover {
+  background-color: #b91c1c;
+  transform: scale(1.1) !important;
+}
+
+.footer {
   display: flex;
   gap: 8px;
+  border-top: 1px solid var(--md-sys-color-surface-variant);
+  padding-top: 8px;
+  margin-top: auto;
 }
 
-.actionBtn,
-.actionBtnLabel {
+.footerBtn {
   flex: 1;
   text-align: center;
-  padding: 6px 12px;
+  padding: 6px;
   background-color: var(--md-sys-color-surface-variant);
   color: var(--md-sys-color-on-surface-variant);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--md-sys-shape-corner-small);
-  font-size: var(--md-sys-typescale-body-medium-font);
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
   display: inline-block;
 }
 
-.actionBtn:disabled {
+.footerBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.actionBtn:hover:not(:disabled),
-.actionBtnLabel:hover {
+.footerBtn:hover:not(:disabled) {
   background-color: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
 }
@@ -85,85 +134,80 @@
   display: none;
 }
 
-.list {
+/* Form Styles */
+.formContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-right: 4px;
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  background-color: var(--md-sys-color-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: var(--md-sys-shape-corner-medium);
-  cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
-}
-
-.item:hover {
-  border-color: var(--md-sys-color-primary);
-  background-color: var(--md-sys-color-primary-container);
-}
-
-.faviconContainer {
-  width: 32px;
-  height: 32px;
-  background-color: var(--md-sys-color-surface-variant);
-  border-radius: var(--md-sys-shape-corner-small);
-  display: flex;
-  align-items: center;
+  height: 100%;
   justify-content: center;
-  flex-shrink: 0;
+  padding: 8px 12px;
 }
 
-.favicon {
-  width: 16px;
-  height: 16px;
-}
-
-.info {
-  flex: 1;
-  min-width: 0;
-}
-
-.nameText {
-  font-size: var(--md-sys-typescale-body-large-font);
-  font-weight: 600;
-  color: var(--md-sys-color-on-surface);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.urlText {
-  font-size: var(--md-sys-typescale-body-medium-font);
-  color: var(--md-sys-color-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.deleteBtn {
-  background: none;
-  border: none;
-  color: var(--md-sys-color-outline);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: var(--md-sys-shape-corner-small);
-}
-
-.deleteBtn:hover {
-  background-color: var(--md-sys-color-surface-variant);
-  color: #c00000;
-}
-
-.empty {
+.formHeader {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--md-sys-color-primary);
+  margin-bottom: 12px;
   text-align: center;
-  padding: 24px;
-  color: var(--md-sys-color-outline);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inputGroup {
+  width: 100%;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  border-radius: var(--md-sys-shape-corner-small);
   font-size: var(--md-sys-typescale-body-medium-font);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--md-sys-color-primary);
+}
+
+.formButtons {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cancelButton,
+.addButton {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--md-sys-shape-corner-small);
+  cursor: pointer;
+}
+
+.cancelButton {
+  background-color: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.addButton {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.cancelButton:hover {
+  background-color: var(--md-sys-color-outline-variant);
+}
+
+.addButton:hover {
+  opacity: 0.9;
 }

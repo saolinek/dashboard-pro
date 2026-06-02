@@ -1,26 +1,46 @@
 .container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 12px;
   height: 100%;
+  align-items: center;
+}
+
+.leftCol {
+  flex: 1.1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rightCol {
+  flex: 0.9;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  height: 100%;
+  min-width: 0;
 }
 
 .inputGroup {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  gap: 8px;
+  gap: 6px;
 }
 
 .select {
-  padding: 8px 12px;
+  padding: 6px 8px;
   border-radius: var(--md-sys-shape-corner-small);
   border: 1px solid var(--md-sys-color-outline-variant);
   background-color: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   outline: none;
   cursor: pointer;
+  width: 100%;
 }
 
 .select:focus {
@@ -28,12 +48,12 @@
 }
 
 .checkButton {
-  padding: 10px;
+  padding: 8px;
   border: none;
-  border-radius: var(--md-sys-shape-corner-medium);
+  border-radius: var(--md-sys-shape-corner-small);
   background-color: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -43,11 +63,15 @@
 }
 
 .resultBox {
-  padding: 12px;
+  padding: 8px;
   border-radius: var(--md-sys-shape-corner-medium);
   text-align: center;
   border: 1px solid var(--md-sys-color-outline-variant);
-  margin-top: 4px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
 }
 
 .okBorder {
@@ -61,10 +85,14 @@
 }
 
 .resLabel {
-  font-size: 0.75rem;
+  font-size: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 700;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .okText {
@@ -76,21 +104,25 @@
 }
 
 .resDays {
-  font-size: 2.2rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--md-sys-color-on-surface);
   line-height: 1.1;
-  margin: 4px 0;
+  margin: 2px 0;
+  text-align: center;
 }
 
 .resSub {
-  font-size: 0.75rem;
+  font-size: 8px;
   color: var(--md-sys-color-outline);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .legalNote {
-  font-size: 0.7rem;
+  font-size: 8px;
   text-align: center;
   color: var(--md-sys-color-outline);
-  margin-top: auto;
 }
