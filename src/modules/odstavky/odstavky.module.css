@@ -34,7 +34,7 @@
   padding: 6px 8px;
   border-radius: var(--md-sys-shape-corner-small);
   border: 1px solid var(--md-sys-color-outline-variant);
-  background-color: var(--md-sys-color-surface);
+  background-color: #ffffff;
   color: var(--md-sys-color-on-surface);
   font-size: 0.85rem;
   font-weight: 600;
@@ -45,21 +45,6 @@
 
 .select:focus {
   border-color: var(--md-sys-color-primary);
-}
-
-.checkButton {
-  padding: 8px;
-  border: none;
-  border-radius: var(--md-sys-shape-corner-small);
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.checkButton:hover {
-  opacity: 0.9;
 }
 
 .resultBox {
@@ -75,13 +60,13 @@
 }
 
 .okBorder {
-  background-color: #f0fdf4;
-  border-color: #86efac;
+  background-color: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.25);
 }
 
 .badBorder {
-  background-color: #fef2f2;
-  border-color: #fca5a5;
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
 }
 
 .resLabel {
@@ -96,11 +81,11 @@
 }
 
 .okText {
-  color: #16a34a;
+  color: #15803d;
 }
 
 .badText {
-  color: #dc2626;
+  color: #b91c1c;
 }
 
 .resDays {

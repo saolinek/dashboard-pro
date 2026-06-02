@@ -1,13 +1,13 @@
 'use client';
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import React, { useState, useEffect } from 'react';
 import styles from './odstavka-timer.module.css';
 
 export const OutageTimer: React.FC = () => {
   const [startHour, setStartHour] = useState(8);
   const [startMinute, setStartMinute] = useState(0);
-  const [winterEnd, setWinterEnd] = useState('--:--');
-  const [summerEnd, setSummerEnd] = useState('--:--');
   const [isMounted, setIsMounted] = useState(false);
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -37,10 +37,8 @@ export const OutageTimer: React.FC = () => {
     setStartMinute(m);
   }, []);
 
-  useEffect(() => {
-    setWinterEnd(calcEnd(startHour, startMinute, 8));
-    setSummerEnd(calcEnd(startHour, startMinute, 12));
-  }, [startHour, startMinute]);
+  const winterEnd = isMounted ? calcEnd(startHour, startMinute, 8) : '--:--';
+  const summerEnd = isMounted ? calcEnd(startHour, startMinute, 12) : '--:--';
 
   if (!isMounted) return null;
 

@@ -18,16 +18,18 @@ export const SortableModule: React.FC<Props> = ({ config }) => {
     isDragging,
   } = useSortable({ id: config.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition,
-    zIndex: isDragging ? 100 : 0,
-    opacity: isDragging ? 0.5 : 1,
-    // Minimal grid spanning (w, h)
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition: transition ?? undefined,
+    zIndex: isDragging ? 50 : 0,
+    opacity: isDragging ? 0.35 : 1,
+    // Grid spanning for mixed-size cards
     gridColumn: `span ${config.w || 1}`,
     gridRow: `span ${config.h || 1}`,
     height: '100%',
     width: '100%',
+    // Smooth transition for non-dragged items repositioning
+    willChange: isDragging ? 'transform' : undefined,
   };
 
   const moduleDef = moduleRegistry.get(config.type);

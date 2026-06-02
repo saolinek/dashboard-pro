@@ -1,30 +1,30 @@
 :root {
-  /* Material 3 Light Theme Colors */
+  /* Material 3 Light Theme Colors for Glassmorphism */
   --md-sys-color-primary: #0061a4;
   --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #d1e4ff;
+  --md-sys-color-primary-container: rgba(0, 97, 164, 0.08);
   --md-sys-color-on-primary-container: #001d36;
   
   --md-sys-color-secondary: #535f70;
   --md-sys-color-on-secondary: #ffffff;
-  --md-sys-color-secondary-container: #d7e3f7;
+  --md-sys-color-secondary-container: rgba(83, 95, 112, 0.08);
   --md-sys-color-on-secondary-container: #101c2b;
   
-  --md-sys-color-background: #fdfcff;
-  --md-sys-color-on-background: #1a1c1e;
+  --md-sys-color-background: #f8fafc;
+  --md-sys-color-on-background: #0f172a;
   
-  --md-sys-color-surface: #fdfcff;
-  --md-sys-color-on-surface: #1a1c1e;
-  --md-sys-color-surface-variant: #dfe2eb;
+  --md-sys-color-surface: rgba(255, 255, 255, 0.45);
+  --md-sys-color-on-surface: #0f172a;
+  --md-sys-color-surface-variant: rgba(0, 0, 0, 0.03);
   --md-sys-color-on-surface-variant: #43474e;
   
   --md-sys-color-outline: #73777f;
-  --md-sys-color-outline-variant: #c3c7cf;
+  --md-sys-color-outline-variant: rgba(0, 0, 0, 0.08);
 
-  /* Elevations (Shadows) */
-  --md-sys-elevation-1: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-2: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
-  --md-sys-elevation-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+  /* Elevations (Soft Light Mode shadows with inner white highlight borders) */
+  --md-sys-elevation-1: 0 8px 24px rgba(148, 163, 184, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --md-sys-elevation-2: 0 12px 32px rgba(148, 163, 184, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --md-sys-elevation-3: 0 24px 48px rgba(148, 163, 184, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
   /* Shape */
   --md-sys-shape-corner-small: 8px;

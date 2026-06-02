@@ -75,7 +75,7 @@
   border-radius: 50%;
   background-color: #dc2626;
   color: white;
-  border: 1.5px solid var(--md-sys-color-surface);
+  border: 1.5px solid #ffffff;
   font-size: 9px;
   font-weight: 800;
   display: flex;
@@ -101,7 +101,7 @@
 .footer {
   display: flex;
   gap: 8px;
-  border-top: 1px solid var(--md-sys-color-surface-variant);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
   padding-top: 8px;
   margin-top: auto;
 }
@@ -165,7 +165,7 @@
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--md-sys-color-outline-variant);
-  background-color: var(--md-sys-color-surface);
+  background-color: #ffffff;
   color: var(--md-sys-color-on-surface);
   border-radius: var(--md-sys-shape-corner-small);
   font-size: var(--md-sys-typescale-body-medium-font);

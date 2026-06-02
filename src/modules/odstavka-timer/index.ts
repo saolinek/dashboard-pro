@@ -6,6 +6,6 @@ moduleRegistry.register({
   name: 'Odstávka – Čas konce',
   description: 'Výpočet času konce odstávky (zima 8h, léto 12h)',
   component: OutageTimer,
-  defaultWidth: 1,
+  defaultWidth: 2,
   defaultHeight: 2,
 });

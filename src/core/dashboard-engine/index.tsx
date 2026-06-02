@@ -35,7 +35,7 @@ export const DashboardEngine = () => {
     work: { w: 2, h: 1 },
     'prepocet-i': { w: 2, h: 1 },
     odstavky: { w: 2, h: 1 },
-    'odstavka-timer': { w: 2, h: 1 }
+    'odstavka-timer': { w: 2, h: 2 }
   };
 
   useEffect(() => {
@@ -115,36 +115,6 @@ export const DashboardEngine = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '16px 24px',
-        borderBottom: '1px solid var(--md-sys-color-outline-variant)',
-        backgroundColor: 'var(--md-sys-color-surface)'
-      }}>
-        <h1 style={{
-          margin: 0,
-          fontSize: '1.5rem',
-          fontWeight: 700,
-          color: 'var(--md-sys-color-primary)'
-        }}>Dashboard Hub</h1>
-        <button 
-          onClick={handleReset}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: 'var(--md-sys-color-surface-variant)',
-            color: 'var(--md-sys-color-on-surface-variant)',
-            border: '1px solid var(--md-sys-color-outline-variant)',
-            borderRadius: 'var(--md-sys-shape-corner-small)',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '0.85rem'
-          }}
-        >
-          Resetovat rozložení
-        </button>
-      </header>
       <LayoutManager layout={layout} onChange={handleLayoutChange} />
     </div>
   );

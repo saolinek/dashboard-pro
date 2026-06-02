@@ -3,24 +3,31 @@
   color: var(--md-sys-color-on-surface);
   border-radius: var(--md-sys-shape-corner-medium);
   box-shadow: var(--md-sys-elevation-1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   height: 100%;
   width: 100%;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
   box-shadow: var(--md-sys-elevation-2);
+  border-color: rgba(0, 97, 164, 0.25);
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 .header {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  border-bottom: 1px solid var(--md-sys-color-surface-variant);
-  background-color: var(--md-sys-color-surface);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  background-color: rgba(255, 255, 255, 0.01);
 }
 
 .dragHandle {
