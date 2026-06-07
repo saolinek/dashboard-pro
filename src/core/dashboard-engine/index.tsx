@@ -13,6 +13,7 @@ import '@/modules/work';
 import '@/modules/prepocet-i';
 import '@/modules/odstavky';
 import '@/modules/odstavka-timer';
+import '@/modules/odstavka-deadline';
 
 export const DashboardEngine = () => {
   const [layout, setLayout] = useState<ModuleConfig[]>([]);
@@ -25,7 +26,8 @@ export const DashboardEngine = () => {
     'work',
     'prepocet-i',
     'odstavky',
-    'odstavka-timer'
+    'odstavka-timer',
+    'odstavka-deadline'
   ];
 
   const defaultConfigs: Record<string, { w: number; h: number }> = {
@@ -35,7 +37,8 @@ export const DashboardEngine = () => {
     work: { w: 2, h: 1 },
     'prepocet-i': { w: 2, h: 1 },
     odstavky: { w: 2, h: 1 },
-    'odstavka-timer': { w: 2, h: 2 }
+    'odstavka-timer': { w: 2, h: 2 },
+    'odstavka-deadline': { w: 2, h: 1 }
   };
 
   useEffect(() => {
