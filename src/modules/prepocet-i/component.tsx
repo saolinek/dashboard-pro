@@ -25,89 +25,89 @@ function currentFromPower(powerMW: number) {
   return pWatts / (uPhase * COS_PHI * 2);
 }
 
+function parseDecimal(value: string) {
+  const normalized = value.replace(',', '.').trim();
+  if (normalized === '') {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 export const PowerCalculator: React.FC = () => {
   const [currentText, setCurrentText] = useState('');
   const [powerText, setPowerText] = useState('');
   const [activeField, setActiveField] = useState<'current' | 'power'>('current');
 
-  const derived = useMemo(() => {
-    if (activeField === 'current') {
-      const current = currentText === '' ? null : Number(currentText);
-      if (current === null || Number.isNaN(current)) {
-        return { currentOut: '', powerOut: '' };
-      }
-
-      return {
-        currentOut: currentText,
-        powerOut: formatNumber(powerFromCurrent(current)),
-      };
+  const derivedCurrent = useMemo(() => {
+    if (activeField !== 'power') {
+      return currentText;
     }
 
-    const power = powerText === '' ? null : Number(powerText);
-    if (power === null || Number.isNaN(power)) {
-      return { currentOut: '', powerOut: '' };
+    const power = parseDecimal(powerText);
+    if (power === null) {
+      return '';
     }
 
-    return {
-      currentOut: formatNumber(currentFromPower(power), 1),
-      powerOut: powerText,
-    };
+    return formatNumber(currentFromPower(power), 1);
   }, [activeField, currentText, powerText]);
 
-  const handleCurrentChange = (value: string) => {
-    setActiveField('current');
-    setCurrentText(value);
-    if (value === '') {
-      setPowerText('');
-      return;
+  const derivedPower = useMemo(() => {
+    if (activeField !== 'current') {
+      return powerText;
     }
 
-    const current = Number(value);
-    setPowerText(Number.isNaN(current) ? '' : formatNumber(powerFromCurrent(current)));
-  };
-
-  const handlePowerChange = (value: string) => {
-    setActiveField('power');
-    setPowerText(value);
-    if (value === '') {
-      setCurrentText('');
-      return;
+    const current = parseDecimal(currentText);
+    if (current === null) {
+      return '';
     }
 
-    const power = Number(value);
-    setCurrentText(Number.isNaN(power) ? '' : formatNumber(currentFromPower(power), 1));
-  };
+    return formatNumber(powerFromCurrent(current));
+  }, [activeField, currentText, powerText]);
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.infoPill}>23 kV</div>
-        <div className={styles.infoPill}>0.95 cos</div>
+        <div className={styles.infoPill}>cos 0.95</div>
       </div>
 
       <div className={styles.inputsSection}>
         <div className={styles.inputBlock}>
-          <label className={styles.label}>Proud I [A]</label>
-          <input
-            type="number"
-            inputMode="decimal"
-            placeholder="Zadej proud"
-            value={derived.currentOut}
-            onChange={(e) => handleCurrentChange(e.target.value)}
-            className={styles.input}
-          />
+          <label className={styles.label}>Proud</label>
+          <div className={styles.inputWrap}>
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={derivedCurrent}
+              onChange={(e) => {
+                setActiveField('current');
+                setCurrentText(e.target.value);
+              }}
+              className={styles.input}
+            />
+            <span className={styles.unit}>A</span>
+          </div>
         </div>
 
         <div className={styles.inputBlock}>
-          <label className={styles.label}>Výkon P [MW]</label>
-          <input
-            type="number"
-            inputMode="decimal"
-            placeholder="Zadej výkon"
-            value={derived.powerOut}
-            onChange={(e) => handlePowerChange(e.target.value)}
-            className={styles.input}
-          />
+          <label className={styles.label}>Vykon</label>
+          <div className={styles.inputWrap}>
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={derivedPower}
+              onChange={(e) => {
+                setActiveField('power');
+                setPowerText(e.target.value);
+              }}
+              className={styles.input}
+            />
+            <span className={styles.unit}>MW</span>
+          </div>
         </div>
       </div>
     </div>

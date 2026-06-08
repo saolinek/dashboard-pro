@@ -1,61 +1,79 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   height: 100%;
   justify-content: center;
 }
 
 .header {
   display: flex;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: space-between;
 }
 
 .infoPill {
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 999px;
   background: var(--md-sys-color-surface-container-low, var(--md-sys-color-surface-variant));
   color: var(--md-sys-color-on-surface);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
 
 .inputsSection {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
+  min-width: 0;
 }
 
 .inputBlock {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--md-sys-color-secondary);
 }
 
+.inputWrap {
+  position: relative;
+  min-width: 0;
+}
+
 .input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 9px 36px 9px 10px;
   border-radius: var(--md-sys-shape-corner-medium);
   border: 1px solid var(--md-sys-color-outline-variant);
   background-color: var(--md-sys-color-surface);
   color: var(--md-sys-color-on-surface);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   outline: none;
+  min-width: 0;
 }
 
 .input:focus {
   border-color: var(--md-sys-color-primary);
   box-shadow: 0 0 0 2px rgba(var(--md-sys-color-primary-rgb), 0.14);
+}
+
+.unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--md-sys-color-outline);
+  pointer-events: none;
 }
