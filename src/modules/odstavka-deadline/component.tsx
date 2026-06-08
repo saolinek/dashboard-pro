@@ -11,14 +11,14 @@ function addCalendarDays(date: Date, days: number) {
   return result;
 }
 
-function getLatestWorkingDate(targetDate: Date) {
+function getNextWorkingDate(targetDate: Date) {
   const result = new Date(targetDate);
   const day = result.getDay();
 
   if (day === 6) {
-    result.setDate(result.getDate() - 1);
+    result.setDate(result.getDate() + 2);
   } else if (day === 0) {
-    result.setDate(result.getDate() - 2);
+    result.setDate(result.getDate() + 1);
   }
 
   return result;
@@ -56,7 +56,7 @@ export const OutageDeadline: React.FC = () => {
   }
 
   const calendarTarget = addCalendarDays(today, DEADLINE_DAYS);
-  const maxWorkingDate = getLatestWorkingDate(calendarTarget);
+  const maxWorkingDate = getNextWorkingDate(calendarTarget);
   const weekendAdjusted = !isSameDay(calendarTarget, maxWorkingDate);
 
   return (
@@ -68,7 +68,7 @@ export const OutageDeadline: React.FC = () => {
       </div>
       <div className={styles.note}>
         {weekendAdjusted
-          ? 'Konec vychází na víkend, proto je poslední možný termín v pátek.'
+          ? 'Konec vychází na víkend, proto se posouvá na pondělí.'
           : 'Konec nevychází na víkend, datum je už konečné.'}
       </div>
     </div>
