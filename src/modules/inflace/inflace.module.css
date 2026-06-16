@@ -1,0 +1,129 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  justify-content: center;
+}
+
+.header {
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.infoPill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-container-low, var(--md-sys-color-surface-variant));
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.inputsSection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 8px;
+  min-width: 0;
+}
+
+.inputBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--md-sys-color-secondary);
+}
+
+.inputWrap {
+  position: relative;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  padding: 9px 36px 9px 10px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 0.95rem;
+  font-weight: 700;
+  outline: none;
+  min-width: 0;
+}
+
+.input:focus {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--md-sys-color-primary-rgb), 0.14);
+}
+
+.unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--md-sys-color-outline);
+  pointer-events: none;
+}
+
+.resultCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background:
+    linear-gradient(180deg, rgba(var(--md-sys-color-primary-rgb), 0.08), rgba(var(--md-sys-color-primary-rgb), 0.02)),
+    var(--md-sys-color-surface-container-low, var(--md-sys-color-surface-variant));
+  border: 1px solid rgba(var(--md-sys-color-primary-rgb), 0.16);
+}
+
+.resultLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--md-sys-color-secondary);
+}
+
+.resultValue {
+  font-size: 1.25rem;
+  line-height: 1.1;
+  font-weight: 900;
+  color: var(--md-sys-color-on-surface);
+}
+
+.resultValueMuted {
+  font-size: 1rem;
+  line-height: 1.2;
+  font-weight: 800;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.resultMeta {
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.resultStats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--md-sys-color-on-surface-variant);
+}
