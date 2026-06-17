@@ -4,26 +4,10 @@
   grid-auto-rows: 160px;
   gap: 20px;
   padding: 32px 24px;
-  width: 100%;
+  width: max-content;
   max-width: 776px;
   margin: 0 auto;
   justify-content: center;
-}
-
-@media (max-width: 739px) {
-  .grid {
-    grid-template-columns: repeat(3, 160px);
-    max-width: 548px;
-    padding: 28px 16px;
-  }
-}
-
-@media (max-width: 559px) {
-  .grid {
-    grid-template-columns: repeat(2, 160px);
-    max-width: 388px;
-    padding: 24px 14px;
-  }
 }
 
 /* Base sortable item wrapper — ensures smooth layout transitions */
