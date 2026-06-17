@@ -158,8 +158,8 @@ export const InflationCalculator: React.FC = () => {
             <div className={styles.resultLabel}>Dnešní hodnota</div>
             <div className={styles.resultValue}>{formatMoney(result.todayValue)} Kč</div>
             <div className={styles.resultMeta}>
-              {formatMoney(result.amount)} Kč v roce {result.year} odpovídá po započtení průměrné
-              roční inflace zhruba {formatMoney(result.todayValue)} Kč v roce {LAST_YEAR}.
+              {formatMoney(result.amount)} Kč v roce {result.year} má dnes hodnotu zhruba{' '}
+              {formatMoney(result.todayValue)} Kč.
             </div>
             <div className={styles.resultStats}>
               <span>Zdražení: +{formatMoney(result.increase)} Kč</span>
@@ -171,8 +171,8 @@ export const InflationCalculator: React.FC = () => {
             <div className={styles.resultLabel}>Dnešní hodnota</div>
             <div className={styles.resultValueMuted}>Zadej částku a rok</div>
             <div className={styles.resultMeta}>
-              Přepočet používá průměrnou roční inflaci ČSÚ. Poslední dostupný celý rok je{' '}
-              {latestRate.year} s inflací {formatPercent(latestRate.rate)} %.
+              Průměrná roční inflace ČSÚ. Poslední celý rok: {latestRate.year} (
+              {formatPercent(latestRate.rate)} %).
             </div>
           </>
         )}

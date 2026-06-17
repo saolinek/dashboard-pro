@@ -40,7 +40,7 @@ export const DashboardEngine = () => {
     bookmarks: { w: 2, h: 2 },
     work: { w: 2, h: 1 },
     'prepocet-i': { w: 2, h: 1 },
-    inflace: { w: 2, h: 1 },
+    inflace: { w: 2, h: 2 },
     odstavky: { w: 2, h: 1 },
     'odstavka-timer': { w: 2, h: 3 },
     'odstavka-deadline': { w: 2, h: 1 },
