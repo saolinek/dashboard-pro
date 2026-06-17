@@ -10,7 +10,15 @@
   justify-content: center;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 739px) {
+  .grid {
+    grid-template-columns: repeat(3, 160px);
+    max-width: 548px;
+    padding: 28px 16px;
+  }
+}
+
+@media (max-width: 559px) {
   .grid {
     grid-template-columns: repeat(2, 160px);
     max-width: 388px;
