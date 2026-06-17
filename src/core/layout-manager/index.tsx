@@ -3,14 +3,17 @@
 import React, { useState } from 'react';
 import {
   DndContext,
-  closestCenter,
   KeyboardSensor,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
   useDroppable,
+  pointerWithin,
+  rectIntersection,
+  CollisionDetection,
   DragEndEvent,
+  DragOverEvent,
   DragStartEvent,
   DragOverlay,
   UniqueIdentifier,
@@ -33,6 +36,16 @@ const MIN_GRID_ROWS = 8;
 const CELL_SIZE = 160;
 const GRID_GAP = 20;
 const CELL_ID_PREFIX = 'cell:';
+
+type GridTarget = {
+  column: number;
+  y: number;
+};
+
+const columnCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  return pointerCollisions.length > 0 ? pointerCollisions : rectIntersection(args);
+};
 
 function getCellId(column: number, y: number) {
   return `${CELL_ID_PREFIX}${column}:${y}`;
@@ -129,15 +142,28 @@ function getGridRows(layout: ModuleConfig[]) {
   return Math.max(MIN_GRID_ROWS, bottom + 4);
 }
 
-const DropCell: React.FC<{ column: number; y: number }> = ({ column, y }) => {
+const DropCell: React.FC<{
+  column: number;
+  y: number;
+  isDragging: boolean;
+  activeTarget: GridTarget | null;
+}> = ({ column, y, isDragging, activeTarget }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: getCellId(column, y),
   });
+  const isActiveColumn = activeTarget?.column === column;
+  const isInsertTarget = isActiveColumn && activeTarget?.y === y;
 
   return (
     <div
       ref={setNodeRef}
-      className={`${styles.dropCell} ${isOver ? styles.dropCellOver : ''}`}
+      className={[
+        styles.dropCell,
+        isDragging ? styles.dropCellDragging : '',
+        isActiveColumn ? styles.dropCellActiveColumn : '',
+        isInsertTarget ? styles.dropCellInsertTarget : '',
+        isOver ? styles.dropCellOver : '',
+      ].filter(Boolean).join(' ')}
       style={{
         gridColumn: `${column * COLUMN_WIDTH + 1} / span ${COLUMN_WIDTH}`,
         gridRow: `${y + 1} / span 1`,
@@ -148,6 +174,7 @@ const DropCell: React.FC<{ column: number; y: number }> = ({ column, y }) => {
 
 export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }) => {
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const [overTarget, setOverTarget] = useState<GridTarget | null>(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -168,11 +195,31 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id);
+    const activeItem = layout.find((item) => item.id === event.active.id);
+
+    if (activeItem) {
+      setOverTarget({
+        column: getItemColumn(activeItem),
+        y: activeItem.y ?? 0,
+      });
+    }
+  }
+
+  function handleDragOver(event: DragOverEvent) {
+    const activeItem = layout.find((item) => item.id === event.active.id);
+    const target = event.over ? parseCellId(event.over.id) : null;
+
+    if (activeItem && target && isValidColumnTarget(activeItem, target.column, target.y)) {
+      setOverTarget(target);
+      return;
+    }
+
+    setOverTarget(null);
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    const target = over ? parseCellId(over.id) : null;
+    const target = over ? parseCellId(over.id) : overTarget;
     const activeItem = layout.find((item) => item.id === active.id);
 
     if (activeItem && target) {
@@ -182,15 +229,23 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }
     }
     
     setActiveId(null);
+    setOverTarget(null);
   }
 
   function handleDragCancel() {
     setActiveId(null);
+    setOverTarget(null);
   }
 
   const activeConfig = activeId ? layout.find(item => item.id === activeId) : null;
   const activeModuleDef = activeConfig ? moduleRegistry.get(activeConfig.type) : null;
   const ActiveComponent = activeModuleDef?.component;
+  const previewTarget = activeConfig && overTarget && isValidColumnTarget(activeConfig, overTarget.column, overTarget.y)
+    ? overTarget
+    : null;
+  const displayedLayout = activeId && previewTarget
+    ? moveItemToColumn(layout, activeId, previewTarget.column, previewTarget.y)
+    : layout;
   const gridRows = getGridRows(layout);
   const cells = Array.from({ length: LOGICAL_COLUMNS * gridRows }, (_, index) => ({
     column: index % LOGICAL_COLUMNS,
@@ -200,17 +255,28 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }
   return (
     <DndContext 
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={columnCollisionDetection}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
       <div className={styles.grid}>
         {cells.map((cell) => (
-          <DropCell key={getCellId(cell.column, cell.y)} column={cell.column} y={cell.y} />
+          <DropCell
+            key={getCellId(cell.column, cell.y)}
+            column={cell.column}
+            y={cell.y}
+            isDragging={Boolean(activeId)}
+            activeTarget={previewTarget}
+          />
         ))}
-        {layout.map((moduleConfig) => (
-          <SortableModule key={moduleConfig.id} config={moduleConfig} />
+        {displayedLayout.map((moduleConfig) => (
+          <SortableModule
+            key={moduleConfig.id}
+            config={moduleConfig}
+            isDragActive={moduleConfig.id === activeId}
+          />
         ))}
       </div>
       <DragOverlay
