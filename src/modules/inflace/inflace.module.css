@@ -122,6 +122,14 @@
   overflow-wrap: anywhere;
 }
 
+.warning {
+  font-size: 0.68rem;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--md-sys-color-secondary);
+  overflow-wrap: anywhere;
+}
+
 .resultStats {
   display: flex;
   gap: 6px 10px;
