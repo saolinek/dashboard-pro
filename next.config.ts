@@ -1,9 +1,15 @@
 import type { NextConfig } from "next";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: process.env.GITHUB_ACTIONS ? "/dashboard-pro" : "",
+  basePath,
+  trailingSlash: true,
   devIndicators: false,
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

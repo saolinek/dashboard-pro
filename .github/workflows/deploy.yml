@@ -30,18 +30,23 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build with Next.js
         env:
           NEXT_TELEMETRY_DISABLED: 1
-        run: npm run build
+          NEXT_PUBLIC_BASE_PATH: /dashboard-pro
+        run: npm run build:pages
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./out
+          include-hidden-files: true
 
       - name: Deploy to GitHub Pages
         id: deployment

@@ -17,7 +17,9 @@ import '@/modules/odstavka-timer';
 import '@/modules/odstavka-deadline';
 import '@/modules/vyplata';
 
-const GRID_COLUMNS = 8;
+const LOGICAL_COLUMNS = 4;
+const COLUMN_WIDTH = 2;
+const GRID_COLUMNS = LOGICAL_COLUMNS * COLUMN_WIDTH;
 
 function collides(a: ModuleConfig, b: ModuleConfig) {
   const ax = a.x ?? 0;
@@ -37,7 +39,13 @@ function findFreePosition(item: ModuleConfig, placed: ModuleConfig[]) {
   const height = item.h ?? 1;
 
   for (let y = 0; y < 100; y += 1) {
-    for (let x = 0; x <= GRID_COLUMNS - width; x += 1) {
+    for (let column = 0; column < LOGICAL_COLUMNS; column += 1) {
+      const x = column * COLUMN_WIDTH;
+
+      if (x + width > GRID_COLUMNS) {
+        continue;
+      }
+
       const candidate = { ...item, x, y, w: width, h: height };
       if (!placed.some((placedItem) => collides(candidate, placedItem))) {
         return { x, y };
@@ -59,6 +67,7 @@ function ensureGridPositions(layout: ModuleConfig[]) {
       item.y === undefined ||
       item.x < 0 ||
       item.y < 0 ||
+      item.x % COLUMN_WIDTH !== 0 ||
       item.x + width > GRID_COLUMNS ||
       placed.some((placedItem) => collides(item, placedItem));
 
@@ -93,8 +102,8 @@ export const DashboardEngine = () => {
   ];
 
   const defaultConfigs: Record<string, { w: number; h: number }> = {
-    clock: { w: 1, h: 1 },
-    svatek: { w: 1, h: 1 },
+    clock: { w: 2, h: 1 },
+    svatek: { w: 2, h: 1 },
     bookmarks: { w: 2, h: 2 },
     work: { w: 2, h: 1 },
     'prepocet-i': { w: 2, h: 1 },
