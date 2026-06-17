@@ -1,10 +1,10 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   height: 100%;
   justify-content: center;
-  padding: 4px;
+  padding: 2px;
   min-height: 0;
 }
 
@@ -64,7 +64,7 @@
 .results {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
   width: 100%;
 }
 
@@ -72,7 +72,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 7px 10px;
   border-radius: var(--md-sys-shape-corner-large);
   background-color: var(--md-sys-color-surface-container-low, var(--md-sys-color-surface-variant));
   border-left: 5px solid transparent;
@@ -105,7 +105,7 @@
 }
 
 .resultSeason {
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
   overflow-wrap: anywhere;
@@ -113,14 +113,14 @@
 }
 
 .resultMonths {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--md-sys-color-outline);
   overflow-wrap: anywhere;
   line-height: 1.15;
 }
 
 .resultTime {
-  font-size: 1.75rem;
+  font-size: 1.55rem;
   font-weight: 900;
   color: var(--md-sys-color-primary);
   flex-shrink: 0;

@@ -42,7 +42,7 @@ export const DashboardEngine = () => {
     'prepocet-i': { w: 2, h: 1 },
     inflace: { w: 2, h: 2 },
     odstavky: { w: 2, h: 1 },
-    'odstavka-timer': { w: 2, h: 3 },
+    'odstavka-timer': { w: 2, h: 2 },
     'odstavka-deadline': { w: 2, h: 1 },
     vyplata: { w: 2, h: 1 }
   };
