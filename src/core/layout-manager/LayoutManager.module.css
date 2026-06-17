@@ -10,6 +10,18 @@
   justify-content: center;
 }
 
+.dropCell {
+  border: 1px dashed rgba(var(--md-sys-color-primary-rgb), 0.12);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: rgba(var(--md-sys-color-primary-rgb), 0.025);
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.dropCellOver {
+  border-color: rgba(var(--md-sys-color-primary-rgb), 0.45);
+  background: rgba(var(--md-sys-color-primary-rgb), 0.1);
+}
+
 /* Base sortable item wrapper — ensures smooth layout transitions */
 .sortableItem {
   transition: transform 300ms cubic-bezier(0.25, 1, 0.5, 1),

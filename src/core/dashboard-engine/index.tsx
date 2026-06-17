@@ -17,6 +17,64 @@ import '@/modules/odstavka-timer';
 import '@/modules/odstavka-deadline';
 import '@/modules/vyplata';
 
+const GRID_COLUMNS = 8;
+
+function collides(a: ModuleConfig, b: ModuleConfig) {
+  const ax = a.x ?? 0;
+  const ay = a.y ?? 0;
+  const bx = b.x ?? 0;
+  const by = b.y ?? 0;
+  const aw = a.w ?? 1;
+  const ah = a.h ?? 1;
+  const bw = b.w ?? 1;
+  const bh = b.h ?? 1;
+
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function findFreePosition(item: ModuleConfig, placed: ModuleConfig[]) {
+  const width = item.w ?? 1;
+  const height = item.h ?? 1;
+
+  for (let y = 0; y < 100; y += 1) {
+    for (let x = 0; x <= GRID_COLUMNS - width; x += 1) {
+      const candidate = { ...item, x, y, w: width, h: height };
+      if (!placed.some((placedItem) => collides(candidate, placedItem))) {
+        return { x, y };
+      }
+    }
+  }
+
+  return { x: 0, y: placed.length * height };
+}
+
+function ensureGridPositions(layout: ModuleConfig[]) {
+  const placed: ModuleConfig[] = [];
+  let changed = false;
+
+  for (const item of layout) {
+    const width = item.w ?? 1;
+    const needsPosition =
+      item.x === undefined ||
+      item.y === undefined ||
+      item.x < 0 ||
+      item.y < 0 ||
+      item.x + width > GRID_COLUMNS ||
+      placed.some((placedItem) => collides(item, placedItem));
+
+    if (needsPosition) {
+      const position = findFreePosition({ ...item, w: width, h: item.h ?? 1 }, placed);
+      const positionedItem = { ...item, ...position, w: width, h: item.h ?? 1 };
+      placed.push(positionedItem);
+      changed = true;
+    } else {
+      placed.push({ ...item, w: width, h: item.h ?? 1 });
+    }
+  }
+
+  return { layout: placed, changed };
+}
+
 export const DashboardEngine = () => {
   const [layout, setLayout] = useState<ModuleConfig[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -73,7 +131,7 @@ export const DashboardEngine = () => {
       const missingTypes = registeredTypes.filter(t => !existingTypes.has(t));
       
       if (missingTypes.length > 0 || needsSave) {
-        const updated = [
+        const withMissing = [
           ...filteredLayout,
           ...missingTypes.map((type, idx) => ({
             id: `${type}-${Date.now()}-${idx}`,
@@ -82,10 +140,15 @@ export const DashboardEngine = () => {
             h: defaultConfigs[type]?.h || 1
           }))
         ];
+        const { layout: updated } = ensureGridPositions(withMissing);
         setLayout(updated);
         storage.saveLayout(updated);
       } else {
-        setLayout(filteredLayout);
+        const { layout: positionedLayout, changed } = ensureGridPositions(filteredLayout);
+        setLayout(positionedLayout);
+        if (changed) {
+          storage.saveLayout(positionedLayout);
+        }
       }
     } else {
       const defaultLayout: ModuleConfig[] = registeredTypes.map((type, idx) => ({
@@ -94,8 +157,9 @@ export const DashboardEngine = () => {
         w: defaultConfigs[type]?.w || 1,
         h: defaultConfigs[type]?.h || 1
       }));
-      setLayout(defaultLayout);
-      storage.saveLayout(defaultLayout);
+      const { layout: positionedLayout } = ensureGridPositions(defaultLayout);
+      setLayout(positionedLayout);
+      storage.saveLayout(positionedLayout);
     }
     
     setIsLoaded(true);
@@ -114,8 +178,9 @@ export const DashboardEngine = () => {
       w: defaultConfigs[type]?.w || 1,
       h: defaultConfigs[type]?.h || 1
     }));
-    setLayout(defaultLayout);
-    storage.saveLayout(defaultLayout);
+    const { layout: positionedLayout } = ensureGridPositions(defaultLayout);
+    setLayout(positionedLayout);
+    storage.saveLayout(positionedLayout);
   };
 
   if (!isLoaded) {

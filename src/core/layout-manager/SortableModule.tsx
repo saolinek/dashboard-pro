@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSortable } from '@dnd-kit/sortable';
+import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { moduleRegistry, ModuleConfig } from '@/core/registry';
 import { Card } from '@/shared/ui/Card';
@@ -14,21 +14,17 @@ export const SortableModule: React.FC<Props> = ({ config }) => {
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging,
-  } = useSortable({ id: config.id });
+  } = useDraggable({ id: config.id });
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition: transition ?? undefined,
     zIndex: isDragging ? 50 : 0,
     opacity: isDragging ? 0.35 : 1,
-    // Grid spanning for mixed-size cards
-    gridColumn: `span ${config.w || 1}`,
-    gridRow: `span ${config.h || 1}`,
+    gridColumn: `${(config.x ?? 0) + 1} / span ${config.w || 1}`,
+    gridRow: `${(config.y ?? 0) + 1} / span ${config.h || 1}`,
     height: '100%',
     width: '100%',
-    // Smooth transition for non-dragged items repositioning
     willChange: isDragging ? 'transform' : undefined,
   };
 
