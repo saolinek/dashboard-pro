@@ -46,6 +46,8 @@ export const SortableModule: React.FC<Props> = ({ config, isDragActive = false }
     <div
       ref={setNodeRef}
       className={`${styles.sortableItem} ${isDragActive ? styles.dragPlaceholder : ''}`}
+      data-module-id={config.id}
+      data-module-type={config.type}
       style={style}
     >
       <Card

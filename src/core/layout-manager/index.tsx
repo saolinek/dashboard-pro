@@ -20,6 +20,15 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { ModuleConfig, moduleRegistry } from '@/core/registry';
+import {
+  CELL_SIZE,
+  COLUMN_WIDTH,
+  GRID_GAP,
+  LOGICAL_COLUMNS,
+  MIN_GRID_ROWS,
+  isValidColumnTarget,
+  moveItemToGridTarget,
+} from '@/core/layout-utils';
 import { Card } from '@/shared/ui/Card';
 import { SortableModule } from './SortableModule';
 import styles from './LayoutManager.module.css';
@@ -29,12 +38,6 @@ interface LayoutManagerProps {
   onChange: (newLayout: ModuleConfig[]) => void;
 }
 
-const LOGICAL_COLUMNS = 4;
-const COLUMN_WIDTH = 2;
-const GRID_COLUMNS = LOGICAL_COLUMNS * COLUMN_WIDTH;
-const MIN_GRID_ROWS = 8;
-const CELL_SIZE = 160;
-const GRID_GAP = 20;
 const CELL_ID_PREFIX = 'cell:';
 
 type GridTarget = {
@@ -66,72 +69,6 @@ function parseCellId(id: UniqueIdentifier) {
   }
 
   return { column, y };
-}
-
-function isValidColumnTarget(item: ModuleConfig, column: number, y: number) {
-  const x = column * COLUMN_WIDTH;
-  const width = item.w ?? 1;
-
-  return (
-    column >= 0 &&
-    column < LOGICAL_COLUMNS &&
-    y >= 0 &&
-    x + width <= GRID_COLUMNS
-  );
-}
-
-function getItemColumn(item: ModuleConfig) {
-  const x = item.x ?? 0;
-  return Math.max(0, Math.min(LOGICAL_COLUMNS - 1, Math.round(x / COLUMN_WIDTH)));
-}
-
-function packColumns(columns: ModuleConfig[][]) {
-  return columns.flatMap((items, column) => {
-    let y = 0;
-
-    return items.map((item) => {
-      const packed = {
-        ...item,
-        x: column * COLUMN_WIDTH,
-        y,
-      };
-
-      y += item.h ?? 1;
-      return packed;
-    });
-  });
-}
-
-function moveItemToColumn(layout: ModuleConfig[], activeId: UniqueIdentifier, column: number, y: number) {
-  const activeItem = layout.find((item) => item.id === activeId);
-
-  if (!activeItem) {
-    return layout;
-  }
-
-  const columns = Array.from({ length: LOGICAL_COLUMNS }, () => [] as ModuleConfig[]);
-
-  for (const item of layout) {
-    if (item.id === activeId) {
-      continue;
-    }
-
-    columns[getItemColumn(item)].push(item);
-  }
-
-  for (const items of columns) {
-    items.sort((a, b) => (a.y ?? 0) - (b.y ?? 0));
-  }
-
-  const targetItems = columns[column];
-  const insertIndex = targetItems.findIndex((item) => y <= (item.y ?? 0));
-
-  targetItems.splice(insertIndex === -1 ? targetItems.length : insertIndex, 0, {
-    ...activeItem,
-    x: column * COLUMN_WIDTH,
-  });
-
-  return packColumns(columns);
 }
 
 function getGridRows(layout: ModuleConfig[]) {
@@ -199,7 +136,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }
 
     if (activeItem) {
       setOverTarget({
-        column: getItemColumn(activeItem),
+        column: Math.max(0, Math.min(LOGICAL_COLUMNS - 1, Math.round((activeItem.x ?? 0) / COLUMN_WIDTH))),
         y: activeItem.y ?? 0,
       });
     }
@@ -224,7 +161,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }
 
     if (activeItem && target) {
       if (isValidColumnTarget(activeItem, target.column, target.y)) {
-        onChange(moveItemToColumn(layout, active.id, target.column, target.y));
+        onChange(moveItemToGridTarget(layout, String(active.id), target.column, target.y));
       }
     }
     
@@ -244,7 +181,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }
     ? overTarget
     : null;
   const displayedLayout = activeId && previewTarget
-    ? moveItemToColumn(layout, activeId, previewTarget.column, previewTarget.y)
+    ? moveItemToGridTarget(layout, String(activeId), previewTarget.column, previewTarget.y)
     : layout;
   const gridRows = getGridRows(layout);
   const cells = Array.from({ length: LOGICAL_COLUMNS * gridRows }, (_, index) => ({

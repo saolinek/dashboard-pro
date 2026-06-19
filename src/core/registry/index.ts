@@ -8,14 +8,15 @@ export interface ModuleConfig {
   y?: number;
   w?: number;
   h?: number;
-  props?: Record<string, any>;
+  hidden?: boolean;
+  props?: Record<string, unknown>;
 }
 
 export interface ModuleDefinition {
   type: string;
   name: string;
   description?: string;
-  component: React.ComponentType<any>;
+  component: React.ComponentType<Record<string, unknown>>;
   defaultWidth?: number;
   defaultHeight?: number;
   minWidth?: number;
