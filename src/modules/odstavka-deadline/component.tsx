@@ -1,28 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { DEADLINE_DAYS, calculateOutageDeadline } from './date-utils';
 import styles from './odstavka-deadline.module.css';
-
-const DEADLINE_DAYS = 20;
-
-function addCalendarDays(date: Date, days: number) {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-}
-
-function getNextWorkingDate(targetDate: Date) {
-  const result = new Date(targetDate);
-  const day = result.getDay();
-
-  if (day === 6) {
-    result.setDate(result.getDate() + 2);
-  } else if (day === 0) {
-    result.setDate(result.getDate() + 1);
-  }
-
-  return result;
-}
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('cs-CZ', {
@@ -31,14 +11,6 @@ function formatDate(date: Date) {
     month: 'long',
     year: 'numeric',
   }).format(date);
-}
-
-function isSameDay(a: Date, b: Date) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
 }
 
 export const OutageDeadline: React.FC = () => {
@@ -55,22 +27,16 @@ export const OutageDeadline: React.FC = () => {
     return <div className={styles.container}>--</div>;
   }
 
-  const calendarTarget = addCalendarDays(today, DEADLINE_DAYS);
-  const maxWorkingDate = getNextWorkingDate(calendarTarget);
-  const weekendAdjusted = !isSameDay(calendarTarget, maxWorkingDate);
+  const { deadlineDate } = calculateOutageDeadline(today);
 
   return (
     <div className={styles.container}>
       <div className={styles.label}>Maximální datum</div>
-      <div className={styles.date}>{formatDate(maxWorkingDate)}</div>
+      <div className={styles.date}>{formatDate(deadlineDate)}</div>
       <div className={styles.subline}>
-        {DEADLINE_DAYS} kalendářních dnů od dneška
+        {DEADLINE_DAYS} pracovních dnů od dneška
       </div>
-      <div className={styles.note}>
-        {weekendAdjusted
-          ? 'Konec vychází na víkend, proto se posouvá na pondělí.'
-          : 'Konec nevychází na víkend, datum je už konečné.'}
-      </div>
+      <div className={styles.note}>Víkendy a svátky se do lhůty nepočítají.</div>
     </div>
   );
 };

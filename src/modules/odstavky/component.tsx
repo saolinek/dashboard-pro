@@ -1,6 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import {
+  DEADLINE_DAYS,
+  countWorkingDaysBetween,
+  getNextWorkingDate,
+  toLocalDate,
+} from '@/modules/odstavka-deadline/date-utils';
 import styles from './odstavky.module.css';
 
 export const OutagePlanner: React.FC = () => {
@@ -17,20 +23,19 @@ export const OutagePlanner: React.FC = () => {
     return new Date(year, m + 1, 0).getDate();
   };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = toLocalDate(new Date());
 
   const outage = new Date(today.getFullYear(), month, day);
   if (outage < today) {
     outage.setFullYear(today.getFullYear() + 1);
   }
 
-  const diffTime = outage.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const normalizedOutage = getNextWorkingDate(outage);
+  const diffDays = countWorkingDaysBetween(today, normalizedOutage);
 
   const result = {
     diff: diffDays,
-    ok: diffDays >= 20,
+    ok: diffDays >= DEADLINE_DAYS,
   };
 
   const maxDays = daysInMonth(month);
@@ -71,12 +76,14 @@ export const OutagePlanner: React.FC = () => {
           <div className={`${styles.resLabel} ${result.ok ? styles.okText : styles.badText}`}>
             {result.ok ? 'Lhůta v pořádku' : 'Nedostatečná lhůta'}
           </div>
-          <div className={styles.resDays}>{result.diff} dní</div>
-          <div className={styles.resSub}>{result.ok ? 'předem' : 'zbývá (min. 20)'}</div>
+          <div className={styles.resDays}>{result.diff} pracovních dní</div>
+          <div className={styles.resSub}>
+            {result.ok ? 'předem' : 'zbývá (min. 20 pracovních dní)'}
+          </div>
         </div>
 
         <div className={styles.legalNote}>
-          Vnitřní pravidlo: min. 20 dní
+          Vnitřní pravidlo: min. 20 pracovních dní
         </div>
       </div>
     </div>
