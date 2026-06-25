@@ -67,7 +67,7 @@
   opacity: 0.72;
 }
 
-.placehlderCard:hover {
+.placeholderCard:hover {
   box-shadow: none;
   background: rgba(var(--md-sys-color-primary-rgb), 0.06);
 }
