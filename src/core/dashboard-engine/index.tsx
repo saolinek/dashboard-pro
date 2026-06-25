@@ -4,14 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { LayoutManager } from '@/core/layout-manager';
 import { storage } from '@/lib/storage';
 import { ModuleConfig, moduleRegistry } from '@/core/registry';
-import {
-  LOGICAL_COLUMNS,
-  MAX_WIDGET_HEIGHT,
-  MIN_WIDGET_HEIGHT,
-  logicalColumnsFromWidth,
-  normalizeLayout,
-  widthFromLogicalColumns,
-} from '@/core/layout-utils';
+import { normalizeLayout } from '@/core/layout-utils';
 import styles from './DashboardEngine.module.css';
 
 // Import all modules to trigger their registration
@@ -102,12 +95,6 @@ function getInitialLayout() {
   return { layout: positionedLayout, shouldSave: true };
 }
 
-const logicalWidthOptions = Array.from({ length: LOGICAL_COLUMNS }, (_, index) => index + 1);
-const heightOptions = Array.from(
-  { length: MAX_WIDGET_HEIGHT - MIN_WIDGET_HEIGHT + 1 },
-  (_, index) => MIN_WIDGET_HEIGHT + index
-);
-
 export const DashboardEngine = () => {
   const [layout, setLayout] = useState<ModuleConfig[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -163,18 +150,10 @@ export const DashboardEngine = () => {
     );
   };
 
-  const handleWidthChange = (id: string, logicalWidth: number) => {
+  const handleResize = (id: string, width: number, height: number) => {
     updateLayout((currentLayout) =>
       currentLayout.map((item) =>
-        item.id === id ? { ...item, w: widthFromLogicalColumns(logicalWidth) } : item
-      )
-    );
-  };
-
-  const handleHeightChange = (id: string, height: number) => {
-    updateLayout((currentLayout) =>
-      currentLayout.map((item) =>
-        item.id === id ? { ...item, h: height } : item
+        item.id === id ? { ...item, w: width, h: height } : item
       )
     );
   };
@@ -236,40 +215,6 @@ export const DashboardEngine = () => {
                     Zobrazit
                   </label>
                 </div>
-
-                <div className={styles.sizeControls}>
-                  <label className={styles.field}>
-                    <span className={styles.fieldLabel}>Šířka</span>
-                    <select
-                      className={styles.select}
-                      aria-label={`${getModuleName(item.type)} šířka`}
-                      value={logicalColumnsFromWidth(item.w)}
-                      onChange={(event) => handleWidthChange(item.id, Number(event.target.value))}
-                    >
-                      {logicalWidthOptions.map((width) => (
-                        <option key={width} value={width}>
-                          {width} {width === 1 ? 'sloupec' : 'sloupce'}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className={styles.field}>
-                    <span className={styles.fieldLabel}>Výška</span>
-                    <select
-                      className={styles.select}
-                      aria-label={`${getModuleName(item.type)} výška`}
-                      value={item.h ?? MIN_WIDGET_HEIGHT}
-                      onChange={(event) => handleHeightChange(item.id, Number(event.target.value))}
-                    >
-                      {heightOptions.map((height) => (
-                        <option key={height} value={height}>
-                          {height} {height === 1 ? 'řádek' : 'řádky'}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
               </article>
             ))}
           </div>
@@ -277,7 +222,12 @@ export const DashboardEngine = () => {
       )}
 
       {visibleLayout.length > 0 ? (
-        <LayoutManager layout={visibleLayout} onChange={handleLayoutChange} />
+        <LayoutManager
+          layout={visibleLayout}
+          isResizeMode={isSettingsOpen}
+          onChange={handleLayoutChange}
+          onResize={handleResize}
+        />
       ) : (
         <div className={styles.emptyState}>
           Všechny widgety jsou skryté. Otevři nastavení a zapni aspoň jeden widget.

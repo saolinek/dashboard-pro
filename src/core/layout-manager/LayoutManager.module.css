@@ -49,6 +49,11 @@
     transform 180ms ease,
     opacity 160ms ease,
     filter 160ms ease;
+  position: relative;
+}
+
+.resizableItem {
+  z-index: 4;
 }
 
 .dragPlaceholder {
@@ -62,9 +67,67 @@
   opacity: 0.72;
 }
 
-.placeholderCard:hover {
+.placehlderCard:hover {
   box-shadow: none;
   background: rgba(var(--md-sys-color-primary-rgb), 0.06);
+}
+
+.resizeFrame {
+  position: absolute;
+  inset: -7px;
+  border: 2px solid rgba(var(--md-sys-color-primary-rgb), 0.48);
+  border-radius: calc(var(--md-sys-shape-corner-medium) + 3px);
+  pointer-events: none;
+  z-index: 8;
+}
+
+.resizeHandle {
+  appearance: none;
+  position: absolute;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-1);
+  cursor: grab;
+  height: 22px;
+  padding: 0;
+  pointer-events: auto;
+  touch-action: none;
+  width: 22px;
+}
+
+.resizeHandle:hover {
+  background: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+}
+
+.resizeHandle:active {
+  cursor: grabbing;
+}
+
+.resizeHandle:focus-visible {
+  outline: 3px solid rgba(var(--md-sys-color-primary-rgb), 0.24);
+  outline-offset: 3px;
+}
+
+.resizeHandleRight {
+  cursor: ew-resize;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.resizeHandleBottom {
+  bottom: -12px;
+  cursor: ns-resize;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.resizeHandleCorner {
+  bottom: -12px;
+  cursor: nwse-resize;
+  right: -12px;
 }
 
 /* Drag overlay (the floating card that follows cursor) */

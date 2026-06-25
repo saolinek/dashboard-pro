@@ -35,7 +35,9 @@ import styles from './LayoutManager.module.css';
 
 interface LayoutManagerProps {
   layout: ModuleConfig[];
+  isResizeMode?: boolean;
   onChange: (newLayout: ModuleConfig[]) => void;
+  onResize?: (id: string, width: number, height: number) => void;
 }
 
 const CELL_ID_PREFIX = 'cell:';
@@ -109,7 +111,12 @@ const DropCell: React.FC<{
   );
 };
 
-export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }) => {
+export const LayoutManager: React.FC<LayoutManagerProps> = ({
+  layout,
+  isResizeMode = false,
+  onChange,
+  onResize,
+}) => {
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [overTarget, setOverTarget] = useState<GridTarget | null>(null);
 
@@ -213,6 +220,8 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({ layout, onChange }
             key={moduleConfig.id}
             config={moduleConfig}
             isDragActive={moduleConfig.id === activeId}
+            isResizeMode={isResizeMode}
+            onResize={onResize}
           />
         ))}
       </div>
