@@ -23,7 +23,7 @@ interface Props {
   onResize?: (id: string, width: number, height: number) => void;
 }
 
-type ResizeAxis = 'width' | 'height' | 'both';
+type ResizeAxis = 'width' | 'height';
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -144,12 +144,6 @@ export const SortableModule: React.FC<Props> = ({
             className={`${styles.resizeHandle} ${styles.resizeHandleBottom}`}
             aria-label={`Změnit výšku widgetu ${moduleDef.name}`}
             onPointerDown={(event) => startResize(event, 'height')}
-          />
-          <button
-            type="button"
-            className={`${styles.resizeHandle} ${styles.resizeHandleCorner}`}
-            aria-label={`Změnit velikost widgetu ${moduleDef.name}`}
-            onPointerDown={(event) => startResize(event, 'both')}
           />
         </div>
       )}

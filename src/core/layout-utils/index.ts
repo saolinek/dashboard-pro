@@ -99,6 +99,29 @@ function findFreePosition(item: ModuleConfig, placed: ModuleConfig[]) {
   return { x: 0, y: placed.length };
 }
 
+export function showItemInFreePosition(layout: ModuleConfig[], itemId: string) {
+  const targetItem = layout.find((item) => item.id === itemId);
+
+  if (!targetItem) {
+    return layout;
+  }
+
+  const visibleLayout = layout.filter((item) => item.id !== itemId && !item.hidden);
+  const { layout: normalizedVisibleLayout } = normalizeLayout(visibleLayout);
+  const visibleById = new Map(normalizedVisibleLayout.map((item) => [item.id, item]));
+  const restoredItem = normalizeWidgetSize({ ...targetItem, hidden: false });
+  const freePosition = findFreePosition(restoredItem, normalizedVisibleLayout);
+  const positionedRestoredItem = { ...restoredItem, ...freePosition };
+
+  return layout.map((item) => {
+    if (item.id === itemId) {
+      return positionedRestoredItem;
+    }
+
+    return visibleById.get(item.id) ?? item;
+  });
+}
+
 export function normalizeLayout(layout: ModuleConfig[]) {
   const placed: ModuleConfig[] = [];
   let changed = false;

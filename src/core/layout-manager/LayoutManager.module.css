@@ -133,12 +133,6 @@
   transform: translateX(-50%);
 }
 
-.resizeHandleCorner {
-  bottom: -12px;
-  cursor: nwse-resize;
-  right: -12px;
-}
-
 /* Drag overlay (the floating card that follows cursor) */
 .dragOverlay {
   width: 100%;

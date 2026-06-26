@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { LayoutManager } from '@/core/layout-manager';
 import { storage } from '@/lib/storage';
 import { ModuleConfig, moduleRegistry } from '@/core/registry';
-import { normalizeLayout } from '@/core/layout-utils';
+import { normalizeLayout, showItemInFreePosition } from '@/core/layout-utils';
 import styles from './DashboardEngine.module.css';
 
 // Import all modules to trigger their registration
@@ -143,11 +143,15 @@ export const DashboardEngine = () => {
   };
 
   const handleVisibilityChange = (id: string, isVisible: boolean) => {
-    updateLayout((currentLayout) =>
-      currentLayout.map((item) =>
-        item.id === id ? { ...item, hidden: !isVisible } : item
-      )
-    );
+    updateLayout((currentLayout) => {
+      if (isVisible) {
+        return showItemInFreePosition(currentLayout, id);
+      }
+
+      return currentLayout.map((item) =>
+        item.id === id ? { ...item, hidden: true } : item
+      );
+    });
   };
 
   const handleResize = (id: string, width: number, height: number) => {
@@ -187,6 +191,21 @@ export const DashboardEngine = () => {
         styles.workspace,
         isSettingsOpen ? styles.workspaceWithSettings : '',
       ].filter(Boolean).join(' ')}>
+        <div className={styles.dashboardContent}>
+          {visibleLayout.length > 0 ? (
+            <LayoutManager
+              layout={visibleLayout}
+              isResizeMode={isSettingsOpen}
+              onChange={handleLayoutChange}
+              onResize={handleResize}
+            />
+          ) : (
+            <div className={styles.emptyState}>
+              Všechny widgety jsou skryté. Otevři nastavení a zapni aspoň jeden widget.
+            </div>
+          )}
+        </div>
+
         {isSettingsOpen && (
           <aside className={styles.settingsPanel} aria-label="Nastavení widgetů">
             <div className={styles.settingsHeader}>
@@ -224,21 +243,6 @@ export const DashboardEngine = () => {
             </div>
           </aside>
         )}
-
-        <div className={styles.dashboardContent}>
-          {visibleLayout.length > 0 ? (
-            <LayoutManager
-              layout={visibleLayout}
-              isResizeMode={isSettingsOpen}
-              onChange={handleLayoutChange}
-              onResize={handleResize}
-            />
-          ) : (
-            <div className={styles.emptyState}>
-              Všechny widgety jsou skryté. Otevři nastavení a zapni aspoň jeden widget.
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
