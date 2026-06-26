@@ -18,6 +18,7 @@ import styles from './LayoutManager.module.css';
 interface Props {
   config: ModuleConfig;
   isDragActive?: boolean;
+  isDragEnabled?: boolean;
   isResizeMode?: boolean;
   onResize?: (id: string, width: number, height: number) => void;
 }
@@ -31,6 +32,7 @@ function clamp(value: number, min: number, max: number) {
 export const SortableModule: React.FC<Props> = ({
   config,
   isDragActive = false,
+  isDragEnabled = true,
   isResizeMode = false,
   onResize,
 }) => {
@@ -40,7 +42,7 @@ export const SortableModule: React.FC<Props> = ({
     setNodeRef,
     transform,
     isDragging,
-  } = useDraggable({ id: config.id });
+  } = useDraggable({ id: config.id, disabled: !isDragEnabled });
 
   const style: React.CSSProperties = {
     transform: isDragActive ? undefined : CSS.Translate.toString(transform),
@@ -64,11 +66,12 @@ export const SortableModule: React.FC<Props> = ({
   }
 
   const Component = moduleDef.component;
-  const canResize = isResizeMode && !isDragActive && Boolean(onResize);
+  const canResize = isResizeMode && isDragEnabled && !isDragActive && Boolean(onResize);
   const dragHandleProps = {
     ...attributes,
     ...(listeners as unknown as React.ButtonHTMLAttributes<HTMLButtonElement> | undefined),
   };
+  const activeDragHandleProps = isDragEnabled ? dragHandleProps : undefined;
   const resizeGridStep = CELL_SIZE + GRID_GAP;
 
   function startResize(event: React.PointerEvent<HTMLButtonElement>, axis: ResizeAxis) {
@@ -124,7 +127,7 @@ export const SortableModule: React.FC<Props> = ({
       <Card
         title={moduleDef.name}
         className={isDragActive ? styles.placeholderCard : undefined}
-        dragHandleProps={dragHandleProps}
+        dragHandleProps={activeDragHandleProps}
       >
         {isDragActive ? null : <Component {...(config.props || {})} />}
       </Card>

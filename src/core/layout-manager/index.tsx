@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   DndContext,
   KeyboardSensor,
@@ -41,6 +41,7 @@ interface LayoutManagerProps {
 }
 
 const CELL_ID_PREFIX = 'cell:';
+const COMPACT_LAYOUT_QUERY = '(max-width: 900px)';
 
 type GridTarget = {
   column: number;
@@ -81,6 +82,44 @@ function getGridRows(layout: ModuleConfig[]) {
   return Math.max(MIN_GRID_ROWS, bottom + 4);
 }
 
+function useCompactLayout() {
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(COMPACT_LAYOUT_QUERY);
+    const updateCompactState = () => setIsCompact(query.matches);
+
+    updateCompactState();
+    query.addEventListener('change', updateCompactState);
+
+    return () => query.removeEventListener('change', updateCompactState);
+  }, []);
+
+  return isCompact;
+}
+
+function getCompactLayout(layout: ModuleConfig[]) {
+  let nextY = 0;
+
+  return [...layout]
+    .sort((a, b) => {
+      const yDiff = (a.y ?? 0) - (b.y ?? 0);
+      return yDiff !== 0 ? yDiff : (a.x ?? 0) - (b.x ?? 0);
+    })
+    .map((item) => {
+      const compactItem = {
+        ...item,
+        x: 0,
+        y: nextY,
+        w: COLUMN_WIDTH,
+        h: item.h ?? 1,
+      };
+
+      nextY += compactItem.h;
+      return compactItem;
+    });
+}
+
 const DropCell: React.FC<{
   column: number;
   y: number;
@@ -117,6 +156,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({
   onChange,
   onResize,
 }) => {
+  const isCompactLayout = useCompactLayout();
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [overTarget, setOverTarget] = useState<GridTarget | null>(null);
 
@@ -184,14 +224,20 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({
   const activeConfig = activeId ? layout.find(item => item.id === activeId) : null;
   const activeModuleDef = activeConfig ? moduleRegistry.get(activeConfig.type) : null;
   const ActiveComponent = activeModuleDef?.component;
-  const previewTarget = activeConfig && overTarget && isValidColumnTarget(activeConfig, overTarget.column, overTarget.y)
+  const previewTarget = !isCompactLayout && activeConfig && overTarget && isValidColumnTarget(activeConfig, overTarget.column, overTarget.y)
     ? overTarget
     : null;
-  const displayedLayout = activeId && previewTarget
-    ? moveItemToGridTarget(layout, String(activeId), previewTarget.column, previewTarget.y)
-    : layout;
-  const gridRows = getGridRows(layout);
-  const cells = Array.from({ length: LOGICAL_COLUMNS * gridRows }, (_, index) => ({
+  const displayedLayout = useMemo(() => {
+    if (isCompactLayout) {
+      return getCompactLayout(layout);
+    }
+
+    return activeId && previewTarget
+      ? moveItemToGridTarget(layout, String(activeId), previewTarget.column, previewTarget.y)
+      : layout;
+  }, [activeId, isCompactLayout, layout, previewTarget]);
+  const gridRows = getGridRows(displayedLayout);
+  const cells = isCompactLayout ? [] : Array.from({ length: LOGICAL_COLUMNS * gridRows }, (_, index) => ({
     column: index % LOGICAL_COLUMNS,
     y: Math.floor(index / LOGICAL_COLUMNS),
   }));
@@ -205,7 +251,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className={styles.grid}>
+      <div className={[styles.grid, isCompactLayout ? styles.gridCompact : ''].filter(Boolean).join(' ')}>
         {cells.map((cell) => (
           <DropCell
             key={getCellId(cell.column, cell.y)}
@@ -220,6 +266,7 @@ export const LayoutManager: React.FC<LayoutManagerProps> = ({
             key={moduleConfig.id}
             config={moduleConfig}
             isDragActive={moduleConfig.id === activeId}
+            isDragEnabled={!isCompactLayout}
             isResizeMode={isResizeMode}
             onResize={onResize}
           />

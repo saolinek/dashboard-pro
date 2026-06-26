@@ -138,8 +138,16 @@ export function countWorkingDaysBetween(startDate: Date, endDate: Date) {
   return count;
 }
 
+export function countCalendarDaysBetween(startDate: Date, endDate: Date) {
+  const start = toLocalDate(startDate);
+  const end = toLocalDate(endDate);
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+  return Math.round((end.getTime() - start.getTime()) / millisecondsPerDay);
+}
+
 export function calculateOutageDeadline(today: Date) {
   return {
-    deadlineDate: addWorkingDays(today, DEADLINE_DAYS),
+    deadlineDate: addCalendarDays(today, DEADLINE_DAYS),
   };
 }

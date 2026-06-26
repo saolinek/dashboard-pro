@@ -3,8 +3,7 @@
 import React, { useState } from 'react';
 import {
   DEADLINE_DAYS,
-  countWorkingDaysBetween,
-  getNextWorkingDate,
+  countCalendarDaysBetween,
   toLocalDate,
 } from '@/modules/odstavka-deadline/date-utils';
 import styles from './odstavky.module.css';
@@ -30,8 +29,7 @@ export const OutagePlanner: React.FC = () => {
     outage.setFullYear(today.getFullYear() + 1);
   }
 
-  const normalizedOutage = getNextWorkingDate(outage);
-  const diffDays = countWorkingDaysBetween(today, normalizedOutage);
+  const diffDays = countCalendarDaysBetween(today, outage);
 
   const result = {
     diff: diffDays,
@@ -76,14 +74,12 @@ export const OutagePlanner: React.FC = () => {
           <div className={`${styles.resLabel} ${result.ok ? styles.okText : styles.badText}`}>
             {result.ok ? 'Lhůta v pořádku' : 'Nedostatečná lhůta'}
           </div>
-          <div className={styles.resDays}>{result.diff} pracovních dní</div>
-          <div className={styles.resSub}>
-            {result.ok ? 'předem' : 'zbývá (min. 20 pracovních dní)'}
-          </div>
+          <div className={styles.resDays}>{result.diff}</div>
+          <div className={styles.resSub}>kal. dní</div>
         </div>
 
         <div className={styles.legalNote}>
-          Vnitřní pravidlo: min. 20 pracovních dní
+          Pravidlo: min. 20 kal. dní
         </div>
       </div>
     </div>

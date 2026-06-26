@@ -54,3 +54,14 @@
   font-weight: 700;
   color: var(--md-sys-color-on-surface-variant);
 }
+
+@media (max-width: 900px) {
+  .label,
+  .badge {
+    display: none;
+  }
+
+  .amount {
+    font-size: 1.25rem;
+  }
+}

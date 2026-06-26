@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   addWorkingDays,
   calculateOutageDeadline,
+  countCalendarDaysBetween,
   countWorkingDaysBetween,
   getNextWorkingDate,
   isPublicHoliday,
@@ -23,14 +24,22 @@ function assertIsoDate(actual, expected) {
   assert.equal(actualDate, expected);
 }
 
-test('20 pracovních dnů od pátku zahrne víkendy i svátky', () => {
+test('helper pro pracovní dny zahrne víkendy i svátky', () => {
   const friday = date('2026-06-12');
   const saturday = date('2026-06-13');
 
   assertIsoDate(addWorkingDays(friday, 20), '2026-07-13');
   assertIsoDate(addWorkingDays(saturday, 20), '2026-07-13');
-  assertIsoDate(calculateOutageDeadline(friday).deadlineDate, '2026-07-13');
   assert.equal(countWorkingDaysBetween(friday, date('2026-07-13')), 20);
+});
+
+test('lhůta pro odstávky používá kalendářní dny', () => {
+  const friday = date('2026-06-12');
+  const saturday = date('2026-06-13');
+
+  assertIsoDate(calculateOutageDeadline(friday).deadlineDate, '2026-07-02');
+  assert.equal(countCalendarDaysBetween(friday, date('2026-07-02')), 20);
+  assert.equal(countCalendarDaysBetween(saturday, date('2026-07-02')), 19);
 });
 
 test('svátky v okolí Velikonoc se přeskočí', () => {

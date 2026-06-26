@@ -3,7 +3,7 @@ import { NamedaysComponent } from './component';
 
 moduleRegistry.register({
   type: 'svatek',
-  name: 'Svátek dnes',
+  name: 'Svátek',
   description: 'Zobrazuje, kdo má dnes svátek',
   component: NamedaysComponent,
   defaultWidth: 1,

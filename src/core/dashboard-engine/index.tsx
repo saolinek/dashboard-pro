@@ -183,56 +183,63 @@ export const DashboardEngine = () => {
         </button>
       </div>
 
-      {isSettingsOpen && (
-        <section className={styles.settingsPanel} aria-label="Nastavení widgetů">
-          <div className={styles.settingsHeader}>
-            <h2 className={styles.settingsTitle}>Nastavení widgetů</h2>
-            <button type="button" className={styles.resetButton} onClick={handleReset}>
-              Obnovit výchozí
-            </button>
-          </div>
+      <div className={[
+        styles.workspace,
+        isSettingsOpen ? styles.workspaceWithSettings : '',
+      ].filter(Boolean).join(' ')}>
+        {isSettingsOpen && (
+          <aside className={styles.settingsPanel} aria-label="Nastavení widgetů">
+            <div className={styles.settingsHeader}>
+              <h2 className={styles.settingsTitle}>Nastavení widgetů</h2>
+              <button type="button" className={styles.resetButton} onClick={handleReset}>
+                Obnovit výchozí
+              </button>
+            </div>
 
-          <div className={styles.settingsGrid}>
-            {layout.map((item) => (
-              <article
-                key={item.id}
-                data-settings-module-id={item.id}
-                data-settings-module-type={item.type}
-                className={[
-                  styles.widgetSetting,
-                  item.hidden ? styles.widgetSettingHidden : '',
-                ].filter(Boolean).join(' ')}
-              >
-                <div className={styles.widgetSettingHeader}>
-                  <div className={styles.widgetName}>{getModuleName(item.type)}</div>
-                  <label className={styles.visibilityLabel}>
-                    <input
-                      type="checkbox"
-                      className={styles.checkbox}
-                      checked={!item.hidden}
-                      onChange={(event) => handleVisibilityChange(item.id, event.target.checked)}
-                    />
-                    Zobrazit
-                  </label>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+            <div className={styles.settingsGrid}>
+              {layout.map((item) => (
+                <article
+                  key={item.id}
+                  data-settings-module-id={item.id}
+                  data-settings-module-type={item.type}
+                  className={[
+                    styles.widgetSetting,
+                    item.hidden ? styles.widgetSettingHidden : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  <div className={styles.widgetSettingHeader}>
+                    <div className={styles.widgetName}>{getModuleName(item.type)}</div>
+                    <label className={styles.visibilityLabel}>
+                      <input
+                        type="checkbox"
+                        className={styles.checkbox}
+                        checked={!item.hidden}
+                        onChange={(event) => handleVisibilityChange(item.id, event.target.checked)}
+                      />
+                      Zobrazit
+                    </label>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </aside>
+        )}
 
-      {visibleLayout.length > 0 ? (
-        <LayoutManager
-          layout={visibleLayout}
-          isResizeMode={isSettingsOpen}
-          onChange={handleLayoutChange}
-          onResize={handleResize}
-        />
-      ) : (
-        <div className={styles.emptyState}>
-          Všechny widgety jsou skryté. Otevři nastavení a zapni aspoň jeden widget.
+        <div className={styles.dashboardContent}>
+          {visibleLayout.length > 0 ? (
+            <LayoutManager
+              layout={visibleLayout}
+              isResizeMode={isSettingsOpen}
+              onChange={handleLayoutChange}
+              onResize={handleResize}
+            />
+          ) : (
+            <div className={styles.emptyState}>
+              Všechny widgety jsou skryté. Otevři nastavení a zapni aspoň jeden widget.
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

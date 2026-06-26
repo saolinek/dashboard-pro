@@ -6,9 +6,9 @@ import styles from './odstavka-deadline.module.css';
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('cs-CZ', {
-    weekday: 'long',
+    weekday: 'short',
     day: 'numeric',
-    month: 'long',
+    month: 'short',
     year: 'numeric',
   }).format(date);
 }
@@ -34,9 +34,9 @@ export const OutageDeadline: React.FC = () => {
       <div className={styles.label}>Maximální datum</div>
       <div className={styles.date}>{formatDate(deadlineDate)}</div>
       <div className={styles.subline}>
-        {DEADLINE_DAYS} pracovních dnů od dneška
+        {DEADLINE_DAYS} kal. dnů od dneška
       </div>
-      <div className={styles.note}>Víkendy a svátky se do lhůty nepočítají.</div>
+      <div className={styles.note}>Víkendy a svátky se počítají.</div>
     </div>
   );
 };

@@ -13,6 +13,25 @@
   padding: 18px 24px 0;
 }
 
+.workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.workspaceWithSettings {
+  align-items: flex-start;
+  gap: 20px;
+  padding: 16px 24px 0;
+}
+
+.dashboardContent {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
 .settingsButton,
 .resetButton {
   border: 1px solid rgba(var(--md-sys-color-primary-rgb), 0.22);
@@ -45,8 +64,12 @@
 }
 
 .settingsPanel {
-  width: min(1180px, calc(100vw - 48px));
-  margin: 16px auto 0;
+  flex: 0 0 320px;
+  max-height: calc(100vh - 88px);
+  overflow-y: auto;
+  position: sticky;
+  top: 16px;
+  width: 320px;
   padding: 18px;
   border: 1px solid rgba(var(--md-sys-color-primary-rgb), 0.14);
   border-radius: var(--md-sys-shape-corner-medium);
@@ -56,9 +79,9 @@
 
 .settingsHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: stretch;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
@@ -71,7 +94,7 @@
 
 .settingsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -136,18 +159,26 @@
     padding: 14px 16px 0;
   }
 
+  .workspaceWithSettings {
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px 16px 0;
+  }
+
+  .dashboardContent {
+    width: 100%;
+  }
+
   .settingsPanel {
+    flex-basis: auto;
+    max-height: none;
+    position: static;
     width: calc(100vw - 32px);
     padding: 14px;
   }
 
-  .settingsHeader,
   .widgetSettingHeader {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .settingsGrid {
-    grid-template-columns: 1fr;
   }
 }

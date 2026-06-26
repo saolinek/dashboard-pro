@@ -1,9 +1,9 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   height: 100%;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 0;
 }
 
@@ -15,11 +15,11 @@
 }
 
 .infoPill {
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 999px;
   background: var(--md-sys-color-surface-container-low, var(--md-sys-color-surface-variant));
   color: var(--md-sys-color-on-surface);
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
@@ -27,7 +27,7 @@
 .inputsSection {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -53,7 +53,7 @@
 
 .input {
   width: 100%;
-  padding: 8px 36px 8px 10px;
+  padding: 7px 34px 7px 10px;
   border-radius: var(--md-sys-shape-corner-medium);
   border: 1px solid var(--md-sys-color-outline-variant);
   background-color: var(--md-sys-color-surface);
@@ -83,8 +83,8 @@
 .resultCard {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 10px;
+  gap: 4px;
+  padding: 8px;
   border-radius: var(--md-sys-shape-corner-large);
   background:
     linear-gradient(180deg, rgba(var(--md-sys-color-primary-rgb), 0.08), rgba(var(--md-sys-color-primary-rgb), 0.02)),
@@ -117,7 +117,7 @@
 
 .resultMeta {
   font-size: 0.72rem;
-  line-height: 1.35;
+  line-height: 1.25;
   color: var(--md-sys-color-on-surface-variant);
   overflow-wrap: anywhere;
 }
@@ -137,4 +137,21 @@
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--md-sys-color-on-surface-variant);
+}
+
+@media (max-width: 900px) {
+  .container {
+    gap: 7px;
+  }
+
+  .header,
+  .resultMeta,
+  .warning,
+  .resultStats {
+    display: none;
+  }
+
+  .resultCard {
+    padding: 8px;
+  }
 }

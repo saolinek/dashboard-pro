@@ -128,9 +128,6 @@ export const InflationCalculator: React.FC = () => {
           <>
             <div className={styles.resultLabel}>Dnešní hodnota</div>
             <div className={styles.resultValueMuted}>Zadej částku a rok</div>
-            <div className={styles.resultMeta}>
-              Výpočet používá poměr CPI indexů. Roky 1900-1922 jsou orientační proxy.
-            </div>
           </>
         )}
       </div>

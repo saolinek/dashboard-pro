@@ -78,3 +78,18 @@
   flex: 1;
   overflow: hidden;
 }
+
+@media (max-width: 900px) {
+  .header {
+    padding: 7px 10px;
+  }
+
+  .title {
+    font-size: 1rem;
+    font-weight: 650;
+  }
+
+  .content {
+    padding: 10px;
+  }
+}
