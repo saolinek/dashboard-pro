@@ -17,11 +17,11 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  cursor: pointer;
   min-width: 0;
 }
 
 .appIconContainer {
+  appearance: none;
   width: 52px;
   height: 52px;
   border-radius: 22px; /* iOS squircle-like radius */
@@ -33,6 +33,9 @@
   position: relative;
   transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
   box-shadow: var(--md-sys-elevation-1);
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
 }
 
 .appWrapper:hover .appIconContainer {
@@ -96,6 +99,18 @@
 .deleteBadge:hover {
   background-color: #b91c1c;
   transform: scale(1.1) !important;
+}
+
+.deleteBadge:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.appIconContainer:focus-visible,
+.deleteBadge:focus-visible,
+.footerBtn:focus-visible {
+  outline: 3px solid rgba(var(--md-sys-color-primary-rgb), 0.22);
+  outline-offset: 2px;
 }
 
 .footer {

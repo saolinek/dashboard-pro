@@ -10,6 +10,77 @@ interface Bookmark {
 }
 
 const STORAGE_KEY = 'bookmarks';
+const MAX_BOOKMARK_NAME_LENGTH = 32;
+const MAX_IMPORTED_BOOKMARKS = 200;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function normalizeBookmarkUrl(value: unknown) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(withProtocol);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeBookmarkName(value: unknown) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim().replace(/\s+/g, ' ');
+  return trimmed ? trimmed.slice(0, MAX_BOOKMARK_NAME_LENGTH) : null;
+}
+
+function normalizeCreated(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : Date.now();
+}
+
+function normalizeBookmark(value: unknown): Bookmark | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const url = normalizeBookmarkUrl(value.url);
+  const name = normalizeBookmarkName(value.name);
+
+  if (!url || !name) {
+    return null;
+  }
+
+  return {
+    url,
+    name,
+    created: normalizeCreated(value.created),
+  };
+}
+
+function normalizeBookmarks(value: unknown) {
+  return Array.isArray(value)
+    ? value.map(normalizeBookmark).filter((bookmark): bookmark is Bookmark => bookmark !== null)
+    : [];
+}
+
+function openBookmark(url: string) {
+  const safeUrl = normalizeBookmarkUrl(url);
+  if (safeUrl) {
+    window.open(safeUrl, '_blank', 'noopener,noreferrer');
+  }
+}
 
 export const BookmarksComponent: React.FC = () => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -23,7 +94,7 @@ export const BookmarksComponent: React.FC = () => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        setBookmarks(JSON.parse(saved));
+        setBookmarks(normalizeBookmarks(JSON.parse(saved)));
       } catch (e) {
         console.error(e);
       }
@@ -32,7 +103,11 @@ export const BookmarksComponent: React.FC = () => {
 
   const save = (newBookmarks: Bookmark[]) => {
     setBookmarks(newBookmarks);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newBookmarks));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newBookmarks));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const getFaviconUrl = (bookmarkUrl: string) => {
@@ -46,14 +121,13 @@ export const BookmarksComponent: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url.trim() || !name.trim()) return;
-
-    let formattedUrl = url.trim();
-    if (!/^https?:\/\//i.test(formattedUrl)) {
-      formattedUrl = 'https://' + formattedUrl;
+    const formattedUrl = normalizeBookmarkUrl(url);
+    const formattedName = normalizeBookmarkName(name);
+    if (!formattedUrl || !formattedName) {
+      return;
     }
 
-    const updated = [{ url: formattedUrl, name: name.trim(), created: Date.now() }, ...bookmarks];
+    const updated = [{ url: formattedUrl, name: formattedName, created: Date.now() }, ...bookmarks];
     save(updated);
     setUrl('');
     setName('');
@@ -67,7 +141,7 @@ export const BookmarksComponent: React.FC = () => {
   };
 
   const openAll = () => {
-    bookmarks.forEach((b) => window.open(b.url, '_blank'));
+    bookmarks.forEach((b) => openBookmark(b.url));
   };
 
   const exportBookmarks = () => {
@@ -87,19 +161,10 @@ export const BookmarksComponent: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const imported = JSON.parse(event.target?.result as string);
-        if (!Array.isArray(imported)) throw new Error();
-        
-        const merged = [...bookmarks];
-        imported.forEach((b: any) => {
-          if (b.url && b.name) {
-            merged.unshift({
-              url: b.url,
-              name: b.name,
-              created: b.created || Date.now(),
-            });
-          }
-        });
+        const imported = normalizeBookmarks(JSON.parse(String(event.target?.result ?? '')));
+        if (imported.length === 0) throw new Error();
+
+        const merged = [...imported.slice(0, MAX_IMPORTED_BOOKMARKS), ...bookmarks];
         save(merged);
       } catch {
         alert('Neplatný JSON soubor.');
@@ -134,7 +199,7 @@ export const BookmarksComponent: React.FC = () => {
               onChange={(e) => setName(e.target.value)}
               required
               className={styles.input}
-              maxLength={15}
+              maxLength={MAX_BOOKMARK_NAME_LENGTH}
             />
           </div>
           <div className={styles.formButtons}>
@@ -158,7 +223,12 @@ export const BookmarksComponent: React.FC = () => {
       <div className={styles.grid}>
         {displayedBookmarks.map((b, idx) => (
           <div key={b.created + '-' + idx} className={styles.appWrapper}>
-            <div className={styles.appIconContainer} onClick={() => window.open(b.url, '_blank')}>
+            <button
+              type="button"
+              className={styles.appIconContainer}
+              onClick={() => openBookmark(b.url)}
+              aria-label={`Otevřít záložku ${b.name}`}
+            >
               <img
                 src={getFaviconUrl(b.url)}
                 onError={(e) => {
@@ -167,28 +237,31 @@ export const BookmarksComponent: React.FC = () => {
                 alt=""
                 className={styles.favicon}
               />
-              <button
-                type="button"
-                className={styles.deleteBadge}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  remove(idx);
-                }}
-              >
-                ✕
-              </button>
-            </div>
+            </button>
+            <button
+              type="button"
+              className={styles.deleteBadge}
+              onClick={() => remove(idx)}
+              aria-label={`Smazat záložku ${b.name}`}
+            >
+              ✕
+            </button>
             <div className={styles.appName}>{b.name}</div>
           </div>
         ))}
 
         {/* Plus Button inside the grid */}
-        <div className={styles.appWrapper} onClick={() => setShowAddForm(true)}>
-          <div className={`${styles.appIconContainer} ${styles.addBtnContainer}`}>
+        <div className={styles.appWrapper}>
+          <button
+            type="button"
+            className={`${styles.appIconContainer} ${styles.addBtnContainer}`}
+            onClick={() => setShowAddForm(true)}
+            aria-label="Přidat záložku"
+          >
             <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
             </svg>
-          </div>
+          </button>
           <div className={styles.appName}>Přidat</div>
         </div>
       </div>

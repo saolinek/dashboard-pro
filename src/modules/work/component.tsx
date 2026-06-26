@@ -5,6 +5,14 @@ import styles from './work.module.css';
 
 const W_KEY = 'work_time_state';
 
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export const WorkComponent: React.FC = () => {
   const [arrival, setArrival] = useState(420); // 7:00
   const [saldo, setSaldo] = useState(0); // 0 hours
@@ -15,10 +23,18 @@ export const WorkComponent: React.FC = () => {
     try {
       const data = localStorage.getItem(W_KEY);
       if (data) {
-        const parsed = JSON.parse(data);
-        if (parsed.time !== undefined && parsed.saldo !== undefined) {
-          setArrival(parseInt(parsed.time));
-          setSaldo(parseFloat(parsed.saldo));
+        const parsed: unknown = JSON.parse(data);
+        if (isRecord(parsed)) {
+          const parsedArrival = Number(parsed.time);
+          const parsedSaldo = Number(parsed.saldo);
+
+          if (Number.isFinite(parsedArrival)) {
+            setArrival(clamp(Math.round(parsedArrival), 360, 480));
+          }
+
+          if (Number.isFinite(parsedSaldo)) {
+            setSaldo(clamp(parsedSaldo, -1, 1));
+          }
         }
       }
     } catch (e) {
@@ -27,23 +43,27 @@ export const WorkComponent: React.FC = () => {
   }, []);
 
   const saveState = (newArrival: number, newSaldo: number) => {
-    localStorage.setItem(
-      W_KEY,
-      JSON.stringify({
-        time: newArrival,
-        saldo: newSaldo,
-      })
-    );
+    try {
+      localStorage.setItem(
+        W_KEY,
+        JSON.stringify({
+          time: newArrival,
+          saldo: newSaldo,
+        })
+      );
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleArrivalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseInt(e.target.value);
+    const val = clamp(parseInt(e.target.value, 10), 360, 480);
     setArrival(val);
     saveState(val, saldo);
   };
 
   const handleSaldoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
+    const val = clamp(parseFloat(e.target.value), -1, 1);
     setSaldo(val);
     saveState(arrival, val);
   };

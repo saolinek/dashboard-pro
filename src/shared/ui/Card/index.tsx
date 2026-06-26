@@ -6,7 +6,7 @@ interface CardProps {
   className?: string;
   title?: string;
   headerAction?: React.ReactNode;
-  dragHandleProps?: Record<string, any>; // Used to pass dnd-kit listeners if we have a drag handle
+  dragHandleProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
 }
 
 export const Card: React.FC<CardProps> = ({ children, className, title, headerAction, dragHandleProps }) => {
@@ -14,12 +14,19 @@ export const Card: React.FC<CardProps> = ({ children, className, title, headerAc
     <div className={`${styles.card} ${className || ''}`}>
       {(title || headerAction || dragHandleProps) && (
         <div className={styles.header}>
-          <div className={styles.dragHandle} {...dragHandleProps}>
-             {/* Drag Handle Icon - six dots */}
-             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ pointerEvents: 'none' }}>
-               <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-             </svg>
-          </div>
+          {dragHandleProps && (
+            <button
+              type="button"
+              className={styles.dragHandle}
+              aria-label={title ? `Přesunout widget ${title}` : 'Přesunout widget'}
+              {...dragHandleProps}
+            >
+               {/* Drag Handle Icon - six dots */}
+               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ pointerEvents: 'none' }}>
+                 <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+               </svg>
+            </button>
+          )}
           {title && <h3 className={styles.title}>{title}</h3>}
           {headerAction && <div className={styles.action}>{headerAction}</div>}
         </div>
