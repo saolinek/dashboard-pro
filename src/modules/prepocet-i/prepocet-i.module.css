@@ -10,6 +10,41 @@
   display: flex;
   gap: 6px;
   justify-content: space-between;
+  align-items: center;
+}
+
+.voltageControl {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  background: var(--md-sys-color-surface-variant);
+}
+
+.voltageButton {
+  min-width: 29px;
+  border: 0;
+  border-radius: 999px;
+  padding: 3px 6px;
+  background: transparent;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.66rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.voltageButton:hover {
+  background: var(--md-sys-color-primary-container);
+}
+
+.voltageButtonActive {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.voltageButton:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 1px;
 }
 
 .infoPill {

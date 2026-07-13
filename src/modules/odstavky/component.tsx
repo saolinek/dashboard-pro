@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import {
+  addCalendarDays,
   DEADLINE_DAYS,
   countCalendarDaysBetween,
   toLocalDate,
@@ -9,8 +10,9 @@ import {
 import styles from './odstavky.module.css';
 
 export const OutagePlanner: React.FC = () => {
-  const [day, setDay] = useState(new Date().getDate());
-  const [month, setMonth] = useState(new Date().getMonth());
+  const [defaultOutageDate] = useState(() => addCalendarDays(new Date(), DEADLINE_DAYS));
+  const [day, setDay] = useState(() => defaultOutageDate.getDate());
+  const [month, setMonth] = useState(() => defaultOutageDate.getMonth());
 
   const months = [
     'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',

@@ -16,32 +16,32 @@ import '@/modules/prepocet-i';
 import '@/modules/inflace';
 import '@/modules/odstavky';
 import '@/modules/odstavka-timer';
-import '@/modules/odstavka-deadline';
 import '@/modules/vyplata';
+import '@/modules/svatek-tyden';
 
 const registeredTypes = [
   'clock',
   'svatek',
+  'svatek-tyden',
   'bookmarks',
   'work',
   'prepocet-i',
   'inflace',
   'odstavky',
   'odstavka-timer',
-  'odstavka-deadline',
   'vyplata'
 ];
 
 const defaultConfigs: Record<string, { w: number; h: number }> = {
   clock: { w: 2, h: 1 },
-  svatek: { w: 2, h: 1 },
+  svatek: { w: 2, h: 2 },
+  'svatek-tyden': { w: 2, h: 2 },
   bookmarks: { w: 2, h: 2 },
   work: { w: 2, h: 1 },
   'prepocet-i': { w: 2, h: 1 },
   inflace: { w: 2, h: 2 },
   odstavky: { w: 2, h: 1 },
   'odstavka-timer': { w: 2, h: 2 },
-  'odstavka-deadline': { w: 2, h: 1 },
   vyplata: { w: 2, h: 1 }
 };
 
@@ -68,6 +68,14 @@ function getInitialLayout() {
         const isRegistered = registeredTypes.includes(item.type);
         if (!isRegistered) needsSave = true;
         return isRegistered;
+      })
+      .map(item => {
+        const defaults = defaultConfigs[item.type];
+        if (defaults && (item.w !== defaults.w || item.h !== defaults.h)) {
+          needsSave = true;
+          return { ...item, w: defaults.w, h: defaults.h };
+        }
+        return item;
       });
 
     const existingTypes = new Set(filteredLayout.map(item => item.type));

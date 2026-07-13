@@ -4,7 +4,7 @@ import { PayrollWidget } from './component';
 moduleRegistry.register({
   type: 'vyplata',
   name: 'Výplata',
-  description: 'Nejbližší termín zveřejnění výplatního lístku podle interní tabulky',
+  description: 'Odpočet do nejbližší prémiové výplaty',
   component: PayrollWidget,
   defaultWidth: 2,
   defaultHeight: 1,

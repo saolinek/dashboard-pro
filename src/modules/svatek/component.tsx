@@ -1,15 +1,31 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './svatek.module.css';
 
-interface NamedayData {
+interface NamedayDay {
+  date: string;
+  dayNumber: string;
+  dayInWeek: string;
+  monthNumber: string;
+  month: { nominative: string; genitive: string };
+  year: string;
   name: string;
   isHoliday: boolean;
   holidayName: string | null;
 }
 
-function isNamedayData(value: unknown): value is NamedayData {
+interface NamedayResponse {
+  name: string;
+  isHoliday: boolean;
+  holidayName: string | null;
+}
+
+interface IntervalResponse {
+  days: NamedayDay[];
+}
+
+function isNamedayResponse(value: unknown): value is NamedayResponse {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -22,46 +38,69 @@ function isNamedayData(value: unknown): value is NamedayData {
   );
 }
 
+function isIntervalResponse(value: unknown): value is IntervalResponse {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'days' in value &&
+    Array.isArray((value as IntervalResponse).days)
+  );
+}
+
+function todayStr(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function daysUntilSunday(): number {
+  return (7 - new Date().getDay()) % 7;
+}
+
+function formatDay(day: NamedayDay): string {
+  return `${day.dayNumber}. ${day.month.genitive}`;
+}
+
 export const NamedaysComponent: React.FC = () => {
-  const [data, setData] = useState<NamedayData | null>(null);
+  const [todayData, setTodayData] = useState<NamedayResponse | null>(null);
+  const [weekDays, setWeekDays] = useState<NamedayDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isActive = true;
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 6_000);
+  const fetchData = useCallback(() => {
+    let active = true;
+    const todayController = new AbortController();
+    const weekController = new AbortController();
+    const timeout = window.setTimeout(() => {
+      todayController.abort();
+      weekController.abort();
+    }, 6_000);
 
-    fetch('https://svatkyapi.cz/api/day', { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Chyba při stahování dat');
-        }
-        return res.json();
-      })
-      .then((json: unknown) => {
-        if (!isNamedayData(json)) {
+    const today = todayStr();
+    const count = daysUntilSunday() + 1;
+
+    Promise.all([
+      fetch('https://svatkyapi.cz/api/day', { signal: todayController.signal }).then((r) => r.json()),
+      fetch(`https://svatkyapi.cz/api/day/${today}/interval/${count}`, { signal: weekController.signal }).then((r) => r.json()),
+    ])
+      .then(([todayJson, weekJson]) => {
+        if (!active) return;
+        if (!isNamedayResponse(todayJson) || !isIntervalResponse(weekJson)) {
           throw new Error('Neplatná odpověď API');
         }
-        if (!isActive) {
-          return;
-        }
-        setData(json);
+        setTodayData(todayJson);
+        setWeekDays(weekJson.days);
         setLoading(false);
       })
       .catch((err) => {
-        if (!isActive) {
-          return;
-        }
-
+        if (!active) return;
         if (err instanceof DOMException && err.name === 'AbortError') {
-          setError('Svátek je nedostupný');
-          setLoading(false);
-          return;
+          setError('Svátky jsou nedostupné');
+        } else {
+          setError('Chyba načítání');
         }
-
-        console.error(err);
-        setError('Chyba načítání');
         setLoading(false);
       })
       .finally(() => {
@@ -69,27 +108,53 @@ export const NamedaysComponent: React.FC = () => {
       });
 
     return () => {
-      isActive = false;
-      controller.abort();
+      active = false;
+      todayController.abort();
+      weekController.abort();
       window.clearTimeout(timeout);
     };
   }, []);
+
+  useEffect(() => {
+    const cleanup = fetchData();
+    return cleanup;
+  }, [fetchData]);
 
   if (loading) {
     return <div className={styles.container}>Načítám...</div>;
   }
 
-  if (error || !data) {
+  if (error || !todayData) {
     return <div className={styles.container}>{error || 'Chyba'}</div>;
   }
 
   return (
     <div className={styles.container}>
-      <div className={styles.title}>Dnes má svátek</div>
-      <div className={styles.name}>{data.name}</div>
-      {data.isHoliday && data.holidayName && (
-        <div className={styles.holiday}>{data.holidayName}</div>
-      )}
+      <div className={styles.todaySection}>
+        <div className={styles.title}>Dnes má svátek</div>
+        <div className={styles.name}>{todayData.name}</div>
+        {todayData.isHoliday && todayData.holidayName && (
+          <div className={styles.holiday}>{todayData.holidayName}</div>
+        )}
+      </div>
+
+      <div className={styles.divider} />
+
+      <div className={styles.weekSection}>
+        <div className={styles.weekTitle}>Do konce týdne</div>
+        <div className={styles.daysList}>
+          {weekDays.map((day) => (
+            <div key={day.date} className={styles.dayRow}>
+              <span className={styles.dayOfWeek}>{day.dayInWeek}</span>
+              <span className={styles.dateText}>{formatDay(day)}</span>
+              <span className={styles.nameSmall}>{day.name}</span>
+              {day.isHoliday && day.holidayName && (
+                <span className={styles.holidayBadge}>{day.holidayName}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

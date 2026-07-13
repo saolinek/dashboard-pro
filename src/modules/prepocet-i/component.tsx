@@ -3,8 +3,19 @@
 import React, { useMemo, useState } from 'react';
 import styles from './prepocet-i.module.css';
 
-const VOLTAGE_KV = 23;
 const COS_PHI = 0.95;
+
+const voltageLevels = {
+  nn: { label: 'NN', voltageKV: 0.4 },
+  vn: { label: 'VN', voltageKV: 23 },
+  vvn: { label: 'VVN', voltageKV: 110 },
+} as const;
+
+type VoltageLevel = keyof typeof voltageLevels;
+
+function formatVoltage(voltageKV: number) {
+  return `${String(voltageKV).replace('.', ',')} kV`;
+}
 
 function formatNumber(value: number, digits = 3) {
   return value.toLocaleString('cs-CZ', {
@@ -13,14 +24,14 @@ function formatNumber(value: number, digits = 3) {
   });
 }
 
-function powerFromCurrent(currentA: number) {
-  const uPhase = (VOLTAGE_KV * 1000) / Math.sqrt(3);
+function powerFromCurrent(currentA: number, voltageKV: number) {
+  const uPhase = (voltageKV * 1000) / Math.sqrt(3);
   const pWatts = uPhase * currentA * COS_PHI * 2;
   return pWatts / 1_000_000;
 }
 
-function currentFromPower(powerMW: number) {
-  const uPhase = (VOLTAGE_KV * 1000) / Math.sqrt(3);
+function currentFromPower(powerMW: number, voltageKV: number) {
+  const uPhase = (voltageKV * 1000) / Math.sqrt(3);
   const pWatts = powerMW * 1_000_000;
   return pWatts / (uPhase * COS_PHI * 2);
 }
@@ -39,6 +50,8 @@ export const PowerCalculator: React.FC = () => {
   const [currentText, setCurrentText] = useState('');
   const [powerText, setPowerText] = useState('');
   const [activeField, setActiveField] = useState<'current' | 'power'>('current');
+  const [voltageLevel, setVoltageLevel] = useState<VoltageLevel>('vn');
+  const selectedVoltage = voltageLevels[voltageLevel];
 
   const derivedCurrent = useMemo(() => {
     if (activeField !== 'power') {
@@ -50,8 +63,8 @@ export const PowerCalculator: React.FC = () => {
       return '';
     }
 
-    return formatNumber(currentFromPower(power), 1);
-  }, [activeField, currentText, powerText]);
+    return formatNumber(currentFromPower(power, selectedVoltage.voltageKV), 1);
+  }, [activeField, currentText, powerText, selectedVoltage.voltageKV]);
 
   const derivedPower = useMemo(() => {
     if (activeField !== 'current') {
@@ -63,14 +76,26 @@ export const PowerCalculator: React.FC = () => {
       return '';
     }
 
-    return formatNumber(powerFromCurrent(current));
-  }, [activeField, currentText, powerText]);
+    return formatNumber(powerFromCurrent(current, selectedVoltage.voltageKV));
+  }, [activeField, currentText, powerText, selectedVoltage.voltageKV]);
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.infoPill}>23 kV</div>
-        <div className={styles.infoPill}>cos 0.95</div>
+        <div className={styles.voltageControl} aria-label="Napěťová hladina">
+          {(Object.entries(voltageLevels) as [VoltageLevel, typeof voltageLevels[VoltageLevel]][]).map(([level, option]) => (
+            <button
+              type="button"
+              key={level}
+              className={[styles.voltageButton, voltageLevel === level ? styles.voltageButtonActive : ''].filter(Boolean).join(' ')}
+              onClick={() => setVoltageLevel(level)}
+              aria-pressed={voltageLevel === level}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <div className={styles.infoPill}>{formatVoltage(selectedVoltage.voltageKV)}</div>
       </div>
 
       <div className={styles.inputsSection}>

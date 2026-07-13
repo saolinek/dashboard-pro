@@ -4,26 +4,27 @@ import React, { useEffect, useMemo, useState } from 'react';
 import styles from './vyplata.module.css';
 
 type PayrollItem = {
-  monthLabel: string;
   publishedAt: string;
 };
 
 const PAYROLL_DATES: PayrollItem[] = [
-  { monthLabel: 'listopad 25', publishedAt: '2025-12-08' },
-  { monthLabel: 'prosinec 25', publishedAt: '2026-01-09' },
-  { monthLabel: 'leden 26', publishedAt: '2026-02-09' },
-  { monthLabel: 'únor 26', publishedAt: '2026-03-09' },
-  { monthLabel: 'březen 26', publishedAt: '2026-04-10' },
-  { monthLabel: 'duben 26', publishedAt: '2026-05-12' },
-  { monthLabel: 'květen 26', publishedAt: '2026-06-08' },
-  { monthLabel: 'červen 26', publishedAt: '2026-07-09' },
-  { monthLabel: 'červenec 26', publishedAt: '2026-08-10' },
-  { monthLabel: 'srpen 26', publishedAt: '2026-09-08' },
-  { monthLabel: 'září 26', publishedAt: '2026-10-08' },
-  { monthLabel: 'říjen 26', publishedAt: '2026-11-09' },
-  { monthLabel: 'listopad 26', publishedAt: '2026-12-08' },
-  { monthLabel: 'prosinec 26', publishedAt: '2027-01-11' },
+  { publishedAt: '2025-12-08' },
+  { publishedAt: '2026-01-09' },
+  { publishedAt: '2026-02-09' },
+  { publishedAt: '2026-03-09' },
+  { publishedAt: '2026-04-10' },
+  { publishedAt: '2026-05-12' },
+  { publishedAt: '2026-06-08' },
+  { publishedAt: '2026-07-09' },
+  { publishedAt: '2026-08-10' },
+  { publishedAt: '2026-09-08' },
+  { publishedAt: '2026-10-08' },
+  { publishedAt: '2026-11-09' },
+  { publishedAt: '2026-12-08' },
+  { publishedAt: '2027-01-11' },
 ];
+
+const PREMIUM_PAYMENT_MONTHS = new Set([1, 4, 7, 10]);
 
 function toLocalDate(value: string) {
   const [year, month, day] = value.split('-').map(Number);
@@ -38,12 +39,10 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-function isSameDay(a: Date, b: Date) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+function calendarDaysUntil(today: Date, target: Date) {
+  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const targetUtc = Date.UTC(target.getFullYear(), target.getMonth(), target.getDate());
+  return Math.round((targetUtc - todayUtc) / 86_400_000);
 }
 
 export const PayrollWidget: React.FC = () => {
@@ -61,16 +60,18 @@ export const PayrollWidget: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const nextPayment = useMemo(() => {
+  const upcomingPayments = useMemo(() => {
     if (!today) {
-      return null;
+      return [];
     }
 
-    return PAYROLL_DATES.find((item) => {
-      const publishedAt = toLocalDate(item.publishedAt);
-      return publishedAt.getTime() >= today.getTime();
-    }) ?? null;
+    return PAYROLL_DATES.filter((item) => toLocalDate(item.publishedAt) >= today);
   }, [today]);
+
+  const nextPayment = upcomingPayments[0] ?? null;
+  const premiumPaymentIndex = upcomingPayments.findIndex((item) =>
+    PREMIUM_PAYMENT_MONTHS.has(toLocalDate(item.publishedAt).getMonth())
+  );
 
   if (!today) {
     return <div className={styles.container}>--</div>;
@@ -85,17 +86,22 @@ export const PayrollWidget: React.FC = () => {
     );
   }
 
-  const publishedAt = toLocalDate(nextPayment.publishedAt);
-  const isToday = isSameDay(today, publishedAt);
+  const paymentDate = toLocalDate(nextPayment.publishedAt);
+  const daysUntilPayment = calendarDaysUntil(today, paymentDate);
 
   return (
     <div className={styles.container}>
-      <div className={styles.label}>Další termín výplaty</div>
-      <div className={styles.amount}>{formatDate(publishedAt)}</div>
-      <div className={styles.month}>{nextPayment.monthLabel}</div>
-      <div className={`${styles.badge} ${isToday ? styles.today : styles.upcoming}`}>
-        {isToday ? 'Dnes' : 'Nejbližší termín'}
+      <div className={styles.label}>
+        {daysUntilPayment === 0 ? 'Výplata dnes' : `Výplata za ${daysUntilPayment} dní`}
       </div>
+      <div className={styles.amount}>{formatDate(paymentDate)}</div>
+      {premiumPaymentIndex >= 0 && (
+        <div className={styles.premiumIndicator}>
+          {premiumPaymentIndex === 0
+            ? 'Příští výplata je prémiová'
+            : `Prémiová bude ${premiumPaymentIndex + 1}. příští výplata`}
+        </div>
+      )}
     </div>
   );
 };
