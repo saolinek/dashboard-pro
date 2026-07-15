@@ -165,11 +165,11 @@ export const SpojeniUzluComponent: React.FC = () => {
     const subject = `Prosím o předání informace o spojení dvou uzlových oblastí ${areaA}><${areaB}`;
     const body = `Ahoj,\n\n` +
                  `Prosím o předání informace o spojení dvou uzlových oblastí ${areaA}><${areaB}\n\n` +
-                 `Počáteční manipulace: ${czechDate} ${timeStart}\n` +
-                 `Poslední manipulace: ${czechDate} ${timeEnd}\n\n` +
+                 `Počáteční manipulace:\t\t${czechDate}\t\t${timeStart}\n` +
+                 `Poslední manipulace:\t\t${czechDate}\t\t${timeEnd}\n\n` +
                  `Děkuji.`;
 
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:kamil.pupik@cezdistribuce.cz?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   if (!isMounted) {
