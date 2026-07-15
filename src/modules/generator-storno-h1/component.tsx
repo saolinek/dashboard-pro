@@ -43,9 +43,6 @@ interface FormState {
 export const StornoH1Generator: React.FC = () => {
   // Inicializace stavu
   const [reportNumber, setReportNumber] = useState('');
-  const [signature, setSignature] = useState<EmailSignature | null>(null);
-  const [useSignature, setUseSignature] = useState(false);
-  const [isSigModalOpen, setIsSigModalOpen] = useState(false);
   const [shutdownDate, setShutdownDate] = useState(() => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -53,15 +50,20 @@ export const StornoH1Generator: React.FC = () => {
     const dd = String(today.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   });
-  const [municipality, setMunicipality] = useState('');
-  const [region, setRegion] = useState('');
+  const [municipality, setMunicipality] = useState('Karviná');
+  const [region, setRegion] = useState('OMO oblast KA');
   const [cancelReason, setCancelReason] = useState('Storno žadatelem');
-  const [justification, setJustification] = useState('');
+  const [justification, setJustification] = useState('Storno zadavatelem');
   const [customersB, setCustomersB] = useState<number>(0);
   const [customersC, setCustomersC] = useState<number>(0);
   const [customersD, setCustomersD] = useState<number>(0);
   const [recipientsTo, setRecipientsTo] = useState(DEFAULT_KOMU);
   const [recipientsCc, setRecipientsCc] = useState(DEFAULT_KOPIE);
+
+  // Podpis stav
+  const [signature, setSignature] = useState<EmailSignature | null>(null);
+  const [useSignature, setUseSignature] = useState(false);
+  const [isSigModalOpen, setIsSigModalOpen] = useState(false);
 
   // UX & Validace
   const [isMounted, setIsMounted] = useState(false);
@@ -182,27 +184,25 @@ export const StornoH1Generator: React.FC = () => {
   // Generování předmětu (generateSubject)
   const generateSubject = (): string => {
     const cleanNum = reportNumber.trim();
-    const formattedDate = formatDate(shutdownDate);
-    const cleanMunicipality = municipality.trim();
-    return `STORNO H1-${cleanNum || 'xxxxxxxxxxxx'} na ${formattedDate} ${cleanMunicipality || 'Obec'}`;
+    const formatDateStr = formatDate(shutdownDate);
+    const cleanMunicipality = municipality.trim() || 'Karviná';
+    return `STORNO H1-${cleanNum || 'xxxxxxxxxxxx'} na ${formatDateStr} ${cleanMunicipality}`;
   };
 
   // Generování těla (generateBody)
   const generateBody = (): string => {
     const cleanNum = reportNumber.trim();
-    const formattedDate = formatDate(shutdownDate);
-    const cleanRegion = region.trim() || '...';
-    const cleanMunicipality = municipality.trim() || '...';
+    const formatDateStr = formatDate(shutdownDate);
+    const cleanRegion = region.trim() || 'OMO oblast KA';
+    const cleanMunicipality = municipality.trim() || 'Karviná';
     const cleanJustification = justification.trim() || '...';
 
-    return `Dobrý den,
-
-hlášení H1-${cleanNum || 'xxxxxxxxxxxx'} bylo stornováno v době kratší než 7 dní před plánovanou odstávkou.
+    return `Dobrý den, hlášení H1-${cleanNum || 'xxxxxxxxxxxx'} bylo stornováno v době kratší než 7 dní před plánovanou odstávkou.
 
 Storno: H1-${cleanNum || 'xxxxxxxxxxxx'}
 Oblast: ${cleanRegion}
 Obec: ${cleanMunicipality}
-Datum: ${formattedDate}
+Datum: ${formatDateStr}
 Důvod: ${cancelReason}, zdůvodnění: „${cleanJustification}“
 Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
   };
@@ -220,22 +220,25 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
       newErrors.shutdownDate = true;
       isValid = false;
     }
-    if (!municipality.trim()) {
-      newErrors.municipality = true;
-      isValid = false;
-    }
-    if (!region.trim()) {
-      newErrors.region = true;
-      isValid = false;
+    if (cancelReason === 'Jiné') {
+      const cleanJust = justification.trim();
+      if (!cleanJust || cleanJust === 'Storno zadavatelem') {
+        newErrors.justification = true;
+        isValid = false;
+      }
     }
 
     setErrors(newErrors);
     setValidatedOnce(true);
 
     if (!isValid) {
+      let msg = 'Vyplňte prosím všechna povinná pole (číslo hlášení, datum).';
+      if (newErrors.justification) {
+        msg = 'Při volbě důvodu „Jiné“ je nutné vyplnit konkrétní zdůvodnění (jiné než výchozí „Storno zadavatelem“).';
+      }
       setNotification({
         type: 'error',
-        message: 'Vyplňte prosím všechna povinná pole (číslo hlášení, datum, obec, oblast).',
+        message: msg,
       });
     }
 
@@ -246,29 +249,54 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
   const handleInputChange = (field: string, value: string, setter: (val: string) => void) => {
     setter(value);
     if (validatedOnce) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: !value.trim(),
-      }));
+      setErrors((prev) => {
+        let hasErr = !value.trim();
+        if (field === 'justification' && cancelReason === 'Jiné') {
+          hasErr = !value.trim() || value.trim() === 'Storno zadavatelem';
+        }
+        return {
+          ...prev,
+          [field]: hasErr,
+        };
+      });
     }
   };
 
-  // Kopírovat předmět (copySubject)
+  // Automatická aktualizace chyb pro zdůvodnění při změně důvodu storna
+  useEffect(() => {
+    let isCurrent = true;
+    const updateErrors = async () => {
+      await Promise.resolve();
+      if (isCurrent && validatedOnce) {
+        setErrors((prev) => {
+          const hasErr = cancelReason === 'Jiné' && (!justification.trim() || justification.trim() === 'Storno zadavatelem');
+          return {
+            ...prev,
+            justification: hasErr,
+          };
+        });
+      }
+    };
+    updateErrors();
+    return () => {
+      isCurrent = false;
+    };
+  }, [cancelReason, justification, validatedOnce]);
+
+  // Kopírovat text předmětu (copySubject)
   const copySubject = async (): Promise<void> => {
     setLoadingButton('subject');
     try {
-      const subject = generateSubject();
-      await navigator.clipboard.writeText(subject);
-      // Krátké zpoždění pro plynulý loading efekt
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await navigator.clipboard.writeText(generateSubject());
+      await new Promise((resolve) => setTimeout(resolve, 400));
       setNotification({
         type: 'success',
-        message: 'Předmět e-mailu byl zkopírován do schránky.',
+        message: 'Předmět e-mailu byl úspěšně zkopírován.',
       });
     } catch {
       setNotification({
         type: 'error',
-        message: 'Nepodařilo se zkopírovat předmět do schránky.',
+        message: 'Chyba při kopírování předmětu.',
       });
     } finally {
       setLoadingButton(null);
@@ -284,8 +312,7 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
         body += renderSignatureText(signature);
       }
       await navigator.clipboard.writeText(body);
-      // Krátké zpoždění pro plynulý loading efekt
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await new Promise((resolve) => setTimeout(resolve, 400));
       setNotification({
         type: 'success',
         message: 'Tělo e-mailu bylo zkopírováno do schránky.',
@@ -300,14 +327,24 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     }
   };
 
-  // Kopírovat formátovaný e-mail (copyFormattedEmail)
+  // Kopírovat formátovaný e-mail s HTML (copyFormattedEmail)
   const copyFormattedEmail = async (): Promise<void> => {
     setLoadingButton('body');
     try {
-      const plainText = generateBody() + (useSignature && signature ? renderSignatureText(signature) : '');
-      const bodyHtml = generateBody().replace(/\n/g, '<br />');
+      const bodyText = generateBody();
+      const lines = bodyText.split('\n');
+      const firstLine = lines[0];
+      const restLines = lines.slice(1).join('\n');
+      const restHtml = restLines
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br />');
+
+      const plainText = bodyText + (useSignature && signature ? renderSignatureText(signature) : '');
+      const mainHtml = `<b>${firstLine}</b><br />${restHtml}`;
       const sigHtml = useSignature && signature ? renderSignatureHtml(signature) : '';
-      const htmlContent = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;">${bodyHtml}${sigHtml}</div>`;
+      const htmlContent = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;">${mainHtml}${sigHtml}</div>`;
 
       const blobHtml = new Blob([htmlContent], { type: 'text/html' });
       const blobText = new Blob([plainText], { type: 'text/plain' });
@@ -317,12 +354,13 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
       });
 
       await navigator.clipboard.write([item]);
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await new Promise((resolve) => setTimeout(resolve, 400));
       setNotification({
         type: 'success',
-        message: 'E-mail s formátováním a obrázkem podpisu byl zkopírován.',
+        message: 'E-mail s formátováním a podpisem byl zkopírován do schránky.',
       });
-    } catch {
+    } catch (err) {
+      console.error(err);
       setNotification({
         type: 'error',
         message: 'Chyba při kopírování formátovaného e-mailu.',
@@ -332,7 +370,7 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     }
   };
 
-  // Otevření Outlooku pomocí mailto linku (openOutlook)
+  // Otevření Outlooku pomocí mailto linku (openOutlook) a zkopírování formátovaného textu do schránky pro zachování tučného písma
   const openOutlook = async (): Promise<void> => {
     if (!validate()) return;
 
@@ -342,6 +380,35 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
       let body = generateBody();
       if (useSignature && signature) {
         body += renderSignatureText(signature);
+      }
+
+      // Pokusíme se také zkopírovat formátovaný text do schránky (pro případ ručního vložení v Outlooku/Gmailu)
+      try {
+        const lines = generateBody().split('\n');
+        const firstLine = lines[0];
+        const restLines = lines.slice(1).join('\n');
+        const restHtml = restLines
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/\n/g, '<br />');
+        const sigHtml = useSignature && signature ? renderSignatureHtml(signature) : '';
+        const htmlString = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;"><b>${firstLine}</b><br />${restHtml}${sigHtml}</div>`;
+
+        if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+          const textBlob = new Blob([body], { type: 'text/plain' });
+          const htmlBlob = new Blob([htmlString], { type: 'text/html' });
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/plain': textBlob,
+              'text/html': htmlBlob,
+            }),
+          ]);
+        } else {
+          await navigator.clipboard.writeText(body);
+        }
+      } catch (clipErr) {
+        console.warn('Nepodařilo se zkopírovat tělo do schránky:', clipErr);
       }
 
       // Vyčištění řádků příjemců pro formát mailto (sloučení na jeden řádek, odstranění konců řádků)
@@ -355,8 +422,8 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
       window.location.href = mailtoUrl;
 
       setNotification({
-        type: 'info',
-        message: 'Spouštím e-mailový klient s předvyplněným e-mailem.',
+        type: 'success',
+        message: 'Spouštím e-mail s předvyplněným obsahem. Formátovaný text byl také zkopírován do schránky.',
       });
     } catch {
       setNotification({
@@ -376,10 +443,10 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
     setShutdownDate(`${yyyy}-${mm}-${dd}`);
-    setMunicipality('');
-    setRegion('');
+    setMunicipality('Karviná');
+    setRegion('OMO oblast KA');
     setCancelReason('Storno žadatelem');
-    setJustification('');
+    setJustification('Storno zadavatelem');
     setCustomersB(0);
     setCustomersC(0);
     setCustomersD(0);
@@ -461,7 +528,7 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
           <div className={styles.grid2}>
             <div className={styles.fieldGroup}>
               <label htmlFor="storno-h1-municipality" className={styles.label}>
-                Obec <span className={styles.required}>*</span>
+                Obec
               </label>
               <input
                 id="storno-h1-municipality"
@@ -469,13 +536,13 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
                 placeholder="Např. Děčín"
                 value={municipality}
                 onChange={(e) => handleInputChange('municipality', e.target.value, setMunicipality)}
-                className={`${styles.input} ${errors.municipality ? styles.inputError : ''}`}
+                className={styles.input}
               />
             </div>
 
             <div className={styles.fieldGroup}>
               <label htmlFor="storno-h1-region" className={styles.label}>
-                Oblast <span className={styles.required}>*</span>
+                Oblast
               </label>
               <input
                 id="storno-h1-region"
@@ -483,7 +550,7 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
                 placeholder="Např. Děčínsko"
                 value={region}
                 onChange={(e) => handleInputChange('region', e.target.value, setRegion)}
-                className={`${styles.input} ${errors.region ? styles.inputError : ''}`}
+                className={styles.input}
               />
             </div>
           </div>
@@ -505,14 +572,16 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
             </div>
 
             <div className={styles.fieldGroup}>
-              <label htmlFor="storno-h1-justification" className={styles.label}>Zdůvodnění</label>
+              <label htmlFor="storno-h1-justification" className={styles.label}>
+                Zdůvodnění {cancelReason === 'Jiné' && <span className={styles.required}>*</span>}
+              </label>
               <input
                 id="storno-h1-justification"
                 type="text"
                 placeholder="Např. nevhodné počasí"
                 value={justification}
-                onChange={(e) => setJustification(e.target.value)}
-                className={styles.input}
+                onChange={(e) => handleInputChange('justification', e.target.value, setJustification)}
+                className={`${styles.input} ${errors.justification ? styles.inputError : ''}`}
               />
             </div>
           </div>
@@ -625,7 +694,20 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
             <span className="selectable">{generateSubject()}</span>
           </div>
           <div className={styles.previewDivider} />
-          <pre className={`${styles.previewBody} selectable`}>{generateBody()}</pre>
+          <div className={`${styles.previewBody} selectable`}>
+            {(() => {
+              const bodyText = generateBody();
+              const lines = bodyText.split('\n');
+              const firstLine = lines[0];
+              const restLines = lines.slice(1).join('\n');
+              return (
+                <>
+                  <strong style={{ fontWeight: 'bold', display: 'block' }}>{firstLine}</strong>
+                  <pre style={{ margin: 0, fontFamily: 'inherit', fontSize: 'inherit', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{restLines}</pre>
+                </>
+              );
+            })()}
+          </div>
           {useSignature && signature && (
             <>
               <div className={styles.previewDivider} />
@@ -690,16 +772,8 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
           onClick={copyFormattedEmail}
           disabled={loadingButton !== null}
           className={`${styles.btn} ${styles.btnSecondary}`}
-          style={{ gridColumn: 'span 1' }}
         >
-          {loadingButton === 'body' ? (
-            <>
-              <span className={styles.spinner} />
-              Kopíruji...
-            </>
-          ) : (
-            'Kopírovat s formátováním'
-          )}
+          Kopírovat s formátováním
         </button>
 
         <button
