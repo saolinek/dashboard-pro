@@ -2,12 +2,17 @@
 > dashboard-hub@0.1.0 dev
 > next dev --webpack
 
+⚠ Port 3000 is in use by an unknown process, using available port 3001 instead.
 ▲ Next.js 16.2.7 (webpack)
-- Local:         http://localhost:3000
-- Network:       http://192.168.0.2:3000
-✓ Ready in 562ms
+- Local:         http://localhost:3001
+- Network:       http://192.168.0.2:3001
+✓ Ready in 614ms
+⨯ Another next dev server is already running.
 
-○ Compiling / ...
- GET / 200 in 12.1s (next.js: 11.7s, application-code: 371ms)
- GET / 200 in 70ms (next.js: 7ms, application-code: 63ms)
- GET / 200 in 56ms (next.js: 3ms, application-code: 52ms)
+- Local:        http://localhost:3000
+- PID:          21517
+- Dir:     GET / 200 in 525ms (next.js: 226ms, application-code: 299ms)
+
+
+Run kill 21517 to stop it.
+[?25h
