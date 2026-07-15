@@ -7,8 +7,8 @@ import { ModuleConfig, moduleRegistry } from '@/core/registry';
 import { normalizeLayout, showItemInFreePosition } from '@/core/layout-utils';
 import styles from './DashboardEngine.module.css';
 
-import { SignatureModal } from '@/shared/ui/SignatureModal';
-import { EmailSignature, loadSignature, deleteSignature, renderSignatureHtml } from '@/lib/storage/signature';
+import { SignatureEditor } from '@/shared/ui/SignatureEditor';
+import { loadSignature, deleteSignature, saveSignature, getSignatureHtml } from '@/lib/storage/signature';
 
 // Import all modules to trigger their registration
 import '@/modules/clock'; 
@@ -50,8 +50,8 @@ const defaultConfigs: Record<string, { w: number; h: number }> = {
   odstavky: { w: 2, h: 1 },
   'odstavka-timer': { w: 2, h: 2 },
   vyplata: { w: 2, h: 1 },
-  'spojeni-uzlu': { w: 2, h: 2 },
-  'generator-storno-h1': { w: 2, h: 4 }
+  'spojeni-uzlu': { w: 4, h: 3 },
+  'generator-storno-h1': { w: 4, h: 5 }
 };
 
 function createDefaultLayout() {
@@ -125,7 +125,7 @@ export const DashboardEngine = () => {
   const [layout, setLayout] = useState<ModuleConfig[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [signature, setSignature] = useState<EmailSignature | null>(null);
+  const [signature, setSignature] = useState<string | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
 
   useEffect(() => {
@@ -281,7 +281,7 @@ export const DashboardEngine = () => {
                   <>
                     <div
                       className={styles.signaturePreviewText}
-                      dangerouslySetInnerHTML={{ __html: renderSignatureHtml(signature) }}
+                      dangerouslySetInnerHTML={{ __html: getSignatureHtml() }}
                     />
                     <div className={styles.signatureActions}>
                       <button
@@ -306,7 +306,7 @@ export const DashboardEngine = () => {
                 ) : (
                   <>
                     <div style={{ fontSize: '13px', color: '#5f6368', fontStyle: 'italic', marginBottom: '8px' }}>
-                      Podpis není nastaven. Bude se používat jen čistý text e-mailu.
+                      Podpis zatím není nastaven. Při prvním odeslání e-mailu budete vyzváni k jeho vytvoření.
                     </div>
                     <button
                       type="button"
@@ -324,9 +324,13 @@ export const DashboardEngine = () => {
       </div>
 
       {isSignatureModalOpen && (
-        <SignatureModal
+        <SignatureEditor
           onClose={() => setIsSignatureModalOpen(false)}
-          onSave={(saved) => setSignature(saved)}
+          onSave={(html) => {
+            saveSignature(html);
+            setSignature(html);
+            setIsSignatureModalOpen(false);
+          }}
         />
       )}
     </div>

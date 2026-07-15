@@ -6,6 +6,6 @@ moduleRegistry.register({
   name: 'Generátor e-mailu – STORNO H1',
   description: 'Automaticky vytvoří e-mail o stornu hlášení H1 se živým náhledem a mailto odkazem.',
   component: StornoH1Generator,
-  defaultWidth: 2,
-  defaultHeight: 3,
+  defaultWidth: 4,
+  defaultHeight: 5,
 });

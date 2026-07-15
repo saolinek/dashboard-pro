@@ -6,6 +6,6 @@ moduleRegistry.register({
   name: 'Spojení uzlových oblastí',
   description: 'Rychlé generování e-mailu o provozních změnách spojením dvou oblastí',
   component: SpojeniUzluComponent,
-  defaultWidth: 2,
-  defaultHeight: 2,
+  defaultWidth: 4,
+  defaultHeight: 3,
 });

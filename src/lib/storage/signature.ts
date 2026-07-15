@@ -1,51 +1,68 @@
-export interface EmailSignature {
-  name: string;
-  position: string;
-  company: string;
-  phone: string;
-  email: string;
-  customText?: string;
-  textColor: string;
-  borderColor: string;
-  fontSize: string;
-  image: string; // base64 or URL
-  imageWidth: string;
-  imageHeight: string;
-}
-
 const STORAGE_KEY = 'dashboard_email_signature';
 
-export const DEFAULT_SIGNATURE: EmailSignature = {
-  name: 'Jan Novák',
-  position: 'Specialista distribuce',
-  company: 'ČEZ Distribuce, a. s.',
-  phone: '+420 123 456 789',
-  email: 'jan.novak@cezdistribuce.cz',
-  customText: 'Bezpečnost na prvním místě.',
-  textColor: '#1c1b1f', // material color style
-  borderColor: '#e0e0e0',
-  fontSize: '13px',
-  image: '', // initially empty or standard template
-  imageWidth: '120px',
-  imageHeight: 'auto',
-};
+interface LegacyEmailSignature {
+  name?: string;
+  position?: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+  customText?: string;
+  textColor?: string;
+  borderColor?: string;
+  fontSize?: string;
+  image?: string;
+  imageWidth?: string;
+}
 
-export function loadSignature(): EmailSignature | null {
+function legacyToHtml(sig: LegacyEmailSignature): string {
+  const parts: string[] = [];
+  if (sig.name) parts.push(`<div><strong>${sig.name}</strong></div>`);
+  if (sig.position) parts.push(`<div><em>${sig.position}</em></div>`);
+  if (sig.company) parts.push(`<div>${sig.company}</div>`);
+  if (sig.phone) parts.push(`<div>Tel: ${sig.phone}</div>`);
+  if (sig.email) parts.push(`<div>E-mail: ${sig.email}</div>`);
+  if (sig.customText) parts.push(`<div>${sig.customText}</div>`);
+  if (sig.image) {
+    const w = sig.imageWidth || '120px';
+    parts.push(`<div><img src="${sig.image}" alt="Logo" style="max-width:${w};height:auto;margin-top:8px;" /></div>`);
+  }
+  return parts.join('');
+}
+
+function parseStoredSignature(raw: string): string | null {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed === 'string') {
+      return parsed.trim() || null;
+    }
+    if (parsed && typeof parsed === 'object' && 'html' in parsed && typeof (parsed as { html: string }).html === 'string') {
+      return (parsed as { html: string }).html.trim() || null;
+    }
+    if (parsed && typeof parsed === 'object' && 'name' in parsed) {
+      return legacyToHtml(parsed as LegacyEmailSignature) || null;
+    }
+  } catch {
+    return raw.trim() || null;
+  }
+  return null;
+}
+
+export function loadSignature(): string | null {
   if (typeof window === 'undefined') return null;
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) return null;
-    return JSON.parse(data) as EmailSignature;
+    return parseStoredSignature(data);
   } catch (e) {
     console.error('Failed to load signature', e);
     return null;
   }
 }
 
-export function saveSignature(sig: EmailSignature): void {
+export function saveSignature(html: string): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sig));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ html }));
   } catch (e) {
     console.error('Failed to save signature', e);
   }
@@ -60,46 +77,32 @@ export function deleteSignature(): void {
   }
 }
 
-export function renderSignatureHtml(sig: EmailSignature): string {
-  if (!sig) return '';
-  const textColor = sig.textColor || '#1c1b1f';
-  const borderColor = sig.borderColor || '#e0e0e0';
-  const fontSize = sig.fontSize || '13px';
-  const nameColor = '#005cbb'; // professional ČEZ-like blue accent for name
-
-  const styles = {
-    container: `font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: ${fontSize}; color: ${textColor}; line-height: 1.4; margin-top: 20px; border-top: 1px solid ${borderColor}; padding-top: 12px;`,
-    name: `font-weight: bold; font-size: 15px; color: ${nameColor}; margin-bottom: 2px;`,
-    position: `font-style: italic; color: #5f6368; margin-bottom: 4px;`,
-    company: `font-weight: 600; color: #1c1b1f; margin-bottom: 4px;`,
-    contact: `color: #5f6368; margin-bottom: 2px;`,
-    customText: `margin-top: 6px; font-weight: bold; color: #1e8e3e;`, // eco/safety green accent
-    image: `margin-top: 10px; display: block; max-width: ${sig.imageWidth || '120px'}; height: ${sig.imageHeight || 'auto'}; border: 0;`
-  };
-
-  return `
-<div style="${styles.container}">
-  <div style="${styles.name}">${sig.name}</div>
-  ${sig.position ? `<div style="${styles.position}">${sig.position}</div>` : ''}
-  ${sig.company ? `<div style="${styles.company}">${sig.company}</div>` : ''}
-  ${sig.phone ? `<div style="${styles.contact}">Tel: ${sig.phone}</div>` : ''}
-  ${sig.email ? `<div style="${styles.contact}">E-mail: ${sig.email}</div>` : ''}
-  ${sig.customText ? `<div style="${styles.customText}">${sig.customText}</div>` : ''}
-  ${sig.image ? `<img src="${sig.image}" alt="Logo" style="${styles.image}" />` : ''}
-</div>
-  `;
+export function hasValidSignature(): boolean {
+  const html = loadSignature();
+  if (!html) return false;
+  const text = htmlToPlainText(html);
+  return text.trim().length > 0;
 }
 
-export function renderSignatureText(sig: EmailSignature): string {
-  if (!sig) return '';
-  const lines = [
-    '--',
-    sig.name,
-    sig.position,
-    sig.company,
-    sig.phone ? `Tel: ${sig.phone}` : '',
-    sig.email ? `E-mail: ${sig.email}` : '',
-    sig.customText,
-  ].filter(Boolean);
-  return '\n\n' + lines.join('\n');
+export function htmlToPlainText(html: string): string {
+  if (typeof document === 'undefined') {
+    return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.innerText || div.textContent || '';
+}
+
+export function getSignatureHtml(): string {
+  const html = loadSignature();
+  if (!html?.trim()) return '';
+  return `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f; margin-top: 16px; border-top: 1px solid #e0e0e0; padding-top: 12px;">${html}</div>`;
+}
+
+export function getSignaturePlainText(): string {
+  const html = loadSignature();
+  if (!html?.trim()) return '';
+  const text = htmlToPlainText(html);
+  if (!text.trim()) return '';
+  return `\n\n--\n${text}`;
 }

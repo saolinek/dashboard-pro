@@ -2,13 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './generator-storno-h1.module.css';
-import { SignatureModal } from '@/shared/ui/SignatureModal';
-import {
-  EmailSignature,
-  loadSignature,
-  renderSignatureHtml,
-  renderSignatureText,
-} from '@/lib/storage/signature';
+import { SignatureEditor } from '@/shared/ui/SignatureEditor';
+import { getSignatureHtml, getSignaturePlainText } from '@/lib/storage/signature';
+import { useSignatureGate } from '@/shared/hooks/useSignatureGate';
 
 // Výchozí seznam příjemců
 const DEFAULT_KOMU = `12_A86100 - oddělení Péče o veřejný sektor <12_A86100@cezdistribuce.cz>;
@@ -38,6 +34,7 @@ interface FormState {
   customersD: number;
   recipientsTo: string;
   recipientsCc: string;
+  cancellationPeriod: string;
 }
 
 export const StornoH1Generator: React.FC = () => {
@@ -59,16 +56,21 @@ export const StornoH1Generator: React.FC = () => {
   const [customersD, setCustomersD] = useState<number>(0);
   const [recipientsTo, setRecipientsTo] = useState(DEFAULT_KOMU);
   const [recipientsCc, setRecipientsCc] = useState(DEFAULT_KOPIE);
+  const [cancellationPeriod, setCancellationPeriod] = useState('7');
 
-  // Podpis stav
-  const [signature, setSignature] = useState<EmailSignature | null>(null);
-  const [useSignature, setUseSignature] = useState(false);
-  const [isSigModalOpen, setIsSigModalOpen] = useState(false);
+  const {
+    signatureHtml,
+    isEditorOpen,
+    editorRequired,
+    withSignature,
+    closeEditor,
+    handleSave,
+  } = useSignatureGate();
   // UX & Validace
   const [isMounted, setIsMounted] = useState(false);
   const [validatedOnce, setValidatedOnce] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [loadingButton, setLoadingButton] = useState<'outlook' | 'subject' | 'body' | null>(null);
+  const [loadingButton, setLoadingButton] = useState<'outlook' | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   // Pomocný formát data na DD.MM.RRRR
@@ -98,6 +100,7 @@ export const StornoH1Generator: React.FC = () => {
         if (data.customersD !== undefined) setCustomersD(data.customersD);
         if (data.recipientsTo !== undefined) setRecipientsTo(data.recipientsTo);
         if (data.recipientsCc !== undefined) setRecipientsCc(data.recipientsCc);
+        if (data.cancellationPeriod !== undefined) setCancellationPeriod(data.cancellationPeriod);
       }
     } catch (e) {
       console.error('Chyba při načítání stavu z localStorage:', e);
@@ -120,6 +123,7 @@ export const StornoH1Generator: React.FC = () => {
         customersD,
         recipientsTo,
         recipientsCc,
+        cancellationPeriod,
         ...updatedFields,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
@@ -136,12 +140,6 @@ export const StornoH1Generator: React.FC = () => {
       if (isCurrent) {
         loadState();
         setIsMounted(true);
-        // Načíst podpis
-        const sig = loadSignature();
-        setSignature(sig);
-        if (sig) {
-          setUseSignature(true);
-        }
       }
     };
     init();
@@ -168,6 +166,7 @@ export const StornoH1Generator: React.FC = () => {
     customersD,
     recipientsTo,
     recipientsCc,
+    cancellationPeriod,
   ]);
 
   // Automatické mizení notifikací
@@ -195,8 +194,11 @@ export const StornoH1Generator: React.FC = () => {
     const cleanRegion = region.trim() || 'OMO oblast KA';
     const cleanMunicipality = municipality.trim() || 'Karviná';
     const cleanJustification = justification.trim() || '...';
+    const periodText = cancellationPeriod === '1'
+      ? `Dobrý den, hlášení H1-${cleanNum || 'xxxxxxxxxxxx'} bylo stornováno v den plánované odstávky.`
+      : `Dobrý den, hlášení H1-${cleanNum || 'xxxxxxxxxxxx'} bylo stornováno v době kratší než 7 dní před plánovanou odstávkou.`;
 
-    return `Dobrý den, hlášení H1-${cleanNum || 'xxxxxxxxxxxx'} bylo stornováno v době kratší než 7 dní před plánovanou odstávkou.
+    return `${periodText}
 
 Storno: H1-${cleanNum || 'xxxxxxxxxxxx'}
 Oblast: ${cleanRegion}
@@ -282,104 +284,17 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     };
   }, [cancelReason, justification, validatedOnce]);
 
-  // Kopírovat text předmětu (copySubject)
-  const copySubject = async (): Promise<void> => {
-    setLoadingButton('subject');
-    try {
-      await navigator.clipboard.writeText(generateSubject());
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      setNotification({
-        type: 'success',
-        message: 'Předmět e-mailu byl úspěšně zkopírován.',
-      });
-    } catch {
-      setNotification({
-        type: 'error',
-        message: 'Chyba při kopírování předmětu.',
-      });
-    } finally {
-      setLoadingButton(null);
-    }
-  };
 
-  // Kopírovat text těla (copyBody)
-  const copyBody = async (): Promise<void> => {
-    setLoadingButton('body');
-    try {
-      let body = generateBody();
-      if (useSignature && signature) {
-        body += renderSignatureText(signature);
-      }
-      await navigator.clipboard.writeText(body);
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      setNotification({
-        type: 'success',
-        message: 'Tělo e-mailu bylo zkopírováno do schránky.',
-      });
-    } catch {
-      setNotification({
-        type: 'error',
-        message: 'Nepodařilo se zkopírovat tělo e-mailu do schránky.',
-      });
-    } finally {
-      setLoadingButton(null);
-    }
-  };
-
-  // Kopírovat formátovaný e-mail s HTML (copyFormattedEmail)
-  const copyFormattedEmail = async (): Promise<void> => {
-    setLoadingButton('body');
-    try {
-      const bodyText = generateBody();
-      const lines = bodyText.split('\n');
-      const firstLine = lines[0];
-      const restLines = lines.slice(1).join('\n');
-      const restHtml = restLines
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br />');
-
-      const plainText = bodyText + (useSignature && signature ? renderSignatureText(signature) : '');
-      const mainHtml = `<b>${firstLine}</b><br />${restHtml}`;
-      const sigHtml = useSignature && signature ? renderSignatureHtml(signature) : '';
-      const htmlContent = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;">${mainHtml}${sigHtml}</div>`;
-
-      const blobHtml = new Blob([htmlContent], { type: 'text/html' });
-      const blobText = new Blob([plainText], { type: 'text/plain' });
-      const item = new ClipboardItem({
-        'text/html': blobHtml,
-        'text/plain': blobText,
-      });
-
-      await navigator.clipboard.write([item]);
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      setNotification({
-        type: 'success',
-        message: 'E-mail s formátováním a podpisem byl zkopírován do schránky.',
-      });
-    } catch (err) {
-      console.error(err);
-      setNotification({
-        type: 'error',
-        message: 'Chyba při kopírování formátovaného e-mailu.',
-      });
-    } finally {
-      setLoadingButton(null);
-    }
-  };
 
   // Otevření Outlooku pomocí mailto linku (openOutlook) a zkopírování formátovaného textu do schránky pro zachování tučného písma
   const openOutlook = async (): Promise<void> => {
     if (!validate()) return;
 
+    withSignature(async () => {
     setLoadingButton('outlook');
     try {
       const subject = generateSubject();
-      let body = generateBody();
-      if (useSignature && signature) {
-        body += renderSignatureText(signature);
-      }
+      const body = generateBody() + getSignaturePlainText();
 
       // Pokusíme se také zkopírovat formátovaný text do schránky (pro případ ručního vložení v Outlooku/Gmailu)
       try {
@@ -391,7 +306,7 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/\n/g, '<br />');
-        const sigHtml = useSignature && signature ? renderSignatureHtml(signature) : '';
+        const sigHtml = getSignatureHtml();
         const htmlString = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;"><b>${firstLine}</b><br />${restHtml}${sigHtml}</div>`;
 
         if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
@@ -432,32 +347,10 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     } finally {
       setLoadingButton(null);
     }
-  };
-
-  // Vyčištění formuláře
-  const clearForm = (): void => {
-    setReportNumber('');
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    setShutdownDate(`${yyyy}-${mm}-${dd}`);
-    setMunicipality('Karviná');
-    setRegion('OMO oblast KA');
-    setCancelReason('Storno žadatelem');
-    setJustification('Storno zadavatelem');
-    setCustomersB(0);
-    setCustomersC(0);
-    setCustomersD(0);
-    setRecipientsTo(DEFAULT_KOMU);
-    setRecipientsCc(DEFAULT_KOPIE);
-    setErrors({});
-    setValidatedOnce(false);
-    setNotification({
-      type: 'info',
-      message: 'Formulář byl úspěšně vyčištěn do výchozích hodnot.',
     });
   };
+
+
 
   // Prevence odeslání při stisku klávesy Enter
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
@@ -585,6 +478,18 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
             </div>
           </div>
 
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Lhůta pro storno</label>
+            <select
+              value={cancellationPeriod}
+              onChange={(e) => setCancellationPeriod(e.target.value)}
+              className={styles.select}
+            >
+              <option value="7">7 dní</option>
+              <option value="1">1 den</option>
+            </select>
+          </div>
+
           {/* Počet zákazníků B, C, D */}
           <div className={styles.customersSection}>
             <span className={styles.customersTitle}>Počet zákazníků:</span>
@@ -652,38 +557,6 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
         </fieldset>
       </form>
 
-      {/* Elektronický podpis */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.4)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0, 0, 0, 0.1)', marginTop: '4px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', color: 'var(--md-sys-color-on-surface)' }}>
-          <input
-            type="checkbox"
-            checked={useSignature}
-            onChange={(e) => {
-              if (e.target.checked && !signature) {
-                setIsSigModalOpen(true);
-              } else {
-                setUseSignature(e.target.checked);
-              }
-            }}
-            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-          />
-          Vložit elektronický podpis
-        </label>
-        {signature ? (
-          <span style={{ fontSize: '0.8rem', color: '#5f6368', fontStyle: 'italic' }}>
-            ({signature.name})
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsSigModalOpen(true)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#005cbb', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline', padding: 0 }}
-          >
-            Vytvořit podpis
-          </button>
-        )}
-      </div>
-
       {/* Živý náhled */}
       <div className={styles.previewContainer}>
         <div className={styles.previewHeader}>ŽIVÝ NÁHLED</div>
@@ -707,17 +580,17 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
               );
             })()}
           </div>
-          {useSignature && signature && (
+          {signatureHtml && (
             <>
               <div className={styles.previewDivider} />
-              <div dangerouslySetInnerHTML={{ __html: renderSignatureHtml(signature) }} />
+              <div dangerouslySetInnerHTML={{ __html: getSignatureHtml() }} />
             </>
           )}
         </div>
       </div>
 
-      {/* Tlačítka */}
-      <div className={styles.actionsGrid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
+      {/* Tlačítko */}
+      <div className={styles.actionsGrid}>
         <button
           type="button"
           onClick={openOutlook}
@@ -733,66 +606,13 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
             'Vytvořit e-mail'
           )}
         </button>
-
-        <button
-          type="button"
-          onClick={copySubject}
-          disabled={loadingButton !== null}
-          className={`${styles.btn} ${styles.btnSecondary}`}
-        >
-          {loadingButton === 'subject' ? (
-            <>
-              <span className={styles.spinner} />
-              Kopíruji...
-            </>
-          ) : (
-            'Kopírovat předmět'
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={copyBody}
-          disabled={loadingButton !== null}
-          className={`${styles.btn} ${styles.btnSecondary}`}
-        >
-          {loadingButton === 'body' ? (
-            <>
-              <span className={styles.spinner} />
-              Kopíruji...
-            </>
-          ) : (
-            'Kopírovat text'
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={copyFormattedEmail}
-          disabled={loadingButton !== null}
-          className={`${styles.btn} ${styles.btnSecondary}`}
-        >
-          Kopírovat s formátováním
-        </button>
-
-        <button
-          type="button"
-          onClick={clearForm}
-          disabled={loadingButton !== null}
-          className={`${styles.btn} ${styles.btnDanger}`}
-          style={{ gridColumn: '1 / -1' }}
-        >
-          Vyčistit formulář
-        </button>
       </div>
 
-      {isSigModalOpen && (
-        <SignatureModal
-          onClose={() => setIsSigModalOpen(false)}
-          onSave={(saved) => {
-            setSignature(saved);
-            setUseSignature(true);
-          }}
+      {isEditorOpen && (
+        <SignatureEditor
+          required={editorRequired}
+          onClose={closeEditor}
+          onSave={handleSave}
         />
       )}
     </div>
