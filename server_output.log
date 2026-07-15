@@ -1,0 +1,12 @@
+
+> dashboard-hub@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.2.7 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 542ms
+
+○ Compiling / ...
+ GET / 200 in 12.1s (next.js: 11.7s, application-code: 411ms)
+ GET / 200 in 75ms (next.js: 8ms, application-code: 67ms)
