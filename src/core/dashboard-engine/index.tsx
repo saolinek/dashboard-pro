@@ -19,6 +19,7 @@ import '@/modules/odstavka-timer';
 import '@/modules/vyplata';
 import '@/modules/svatek-tyden';
 import '@/modules/spojeni-uzlu';
+import '@/modules/generator-storno-h1';
 
 const registeredTypes = [
   'clock',
@@ -31,7 +32,8 @@ const registeredTypes = [
   'odstavky',
   'odstavka-timer',
   'vyplata',
-  'spojeni-uzlu'
+  'spojeni-uzlu',
+  'generator-storno-h1'
 ];
 
 const defaultConfigs: Record<string, { w: number; h: number }> = {
@@ -45,7 +47,8 @@ const defaultConfigs: Record<string, { w: number; h: number }> = {
   odstavky: { w: 2, h: 1 },
   'odstavka-timer': { w: 2, h: 2 },
   vyplata: { w: 2, h: 1 },
-  'spojeni-uzlu': { w: 2, h: 2 }
+  'spojeni-uzlu': { w: 2, h: 2 },
+  'generator-storno-h1': { w: 2, h: 4 }
 };
 
 function createDefaultLayout() {
