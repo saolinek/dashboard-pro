@@ -182,3 +182,81 @@
     flex-direction: column;
   }
 }
+
+.signatureSection {
+  margin-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 18px;
+}
+
+.signatureTitle {
+  font-size: 16px;
+  font-weight: 650;
+  color: #005cbb;
+  margin-bottom: 12px;
+}
+
+.signatureCard {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.signaturePreviewText {
+  font-size: 13px;
+  color: #5f6368;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.signatureActions {
+  display: flex;
+  gap: 8px;
+}
+
+.signatureBtn {
+  flex: 1;
+  border: 1px solid rgba(0, 92, 187, 0.22);
+  border-radius: 8px;
+  background: white;
+  color: #005cbb;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.signatureBtn:hover {
+  background: rgba(0, 92, 187, 0.05);
+  border-color: #005cbb;
+}
+
+.signatureBtnDanger {
+  flex: 1;
+  border: 1px solid #fad2cf;
+  border-radius: 8px;
+  background: white;
+  color: #c5221f;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.signatureBtnDanger:hover {
+  background: #fce8e6;
+  border-color: #fad2cf;
+}

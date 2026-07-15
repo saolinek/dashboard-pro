@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './spojeni-uzlu.module.css';
+import { SignatureModal } from '@/shared/ui/SignatureModal';
+import {
+  EmailSignature,
+  loadSignature,
+  renderSignatureHtml,
+  renderSignatureText,
+} from '@/lib/storage/signature';
 
 const DEFAULT_AREAS = ['ORLU', 'ALB_'];
 
@@ -27,6 +34,11 @@ export const SpojeniUzluComponent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAreaText, setNewAreaText] = useState('');
 
+  // Signature states
+  const [signature, setSignature] = useState<EmailSignature | null>(null);
+  const [useSignature, setUseSignature] = useState(false);
+  const [isSigModalOpen, setIsSigModalOpen] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   // Hydration & Initial loading
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -60,11 +72,27 @@ export const SpojeniUzluComponent: React.FC = () => {
       if (d) setDate(d);
       if (s) setTimeStart(s);
       if (e) setTimeEnd(e);
+
+      // Načíst podpis
+      const sig = loadSignature();
+      setSignature(sig);
+      if (sig) {
+        setUseSignature(true);
+      }
     }, 0);
 
     return () => clearTimeout(timer);
   }, []);
 
+  // Automatické mizení notifikací
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
   // Sync to local storage helper
   const saveSession = (
     updatedA: string,
@@ -144,6 +172,87 @@ export const SpojeniUzluComponent: React.FC = () => {
     return `${parseInt(d, 10)}.${parseInt(m, 10)}.${y}`;
   };
 
+  const generateSubject = (): string => {
+    return `Prosím o předání informace o spojení dvou uzlových oblastí ${areaA || '---'}><${areaB || '---'}`;
+  };
+
+  const generateBody = (): string => {
+    const czechDate = formatDateCzech(date);
+    return `Ahoj,\n\n` +
+           `Prosím o předání informace o spojení dvou uzlových oblastí ${areaA || '---'}><${areaB || '---'}\n\n` +
+           `Počáteční manipulace:\t\t${czechDate}\t\t${timeStart || '--:--'}\n` +
+           `Poslední manipulace:\t\t${czechDate}\t\t${timeEnd || '--:--'}\n\n` +
+           `Děkuji.`;
+  };
+
+  // Kopírovat předmět
+  const copySubject = async (): Promise<void> => {
+    try {
+      const subject = generateSubject();
+      await navigator.clipboard.writeText(subject);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setNotification({
+        type: 'success',
+        message: 'Předmět e-mailu byl zkopírován.',
+      });
+    } catch {
+      setNotification({
+        type: 'error',
+        message: 'Nepodařilo se zkopírovat předmět.',
+      });
+    }
+  };
+
+  // Kopírovat text
+  const copyBody = async (): Promise<void> => {
+    try {
+      let body = generateBody();
+      if (useSignature && signature) {
+        body += renderSignatureText(signature);
+      }
+      await navigator.clipboard.writeText(body);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setNotification({
+        type: 'success',
+        message: 'Tělo e-mailu bylo zkopírováno.',
+      });
+    } catch {
+      setNotification({
+        type: 'error',
+        message: 'Nepodařilo se zkopírovat tělo e-mailu.',
+      });
+    }
+  };
+
+  // Kopírovat s formátováním
+  const copyFormattedEmail = async (): Promise<void> => {
+    try {
+      const plainText = generateBody() + (useSignature && signature ? renderSignatureText(signature) : '');
+      const bodyHtml = generateBody().replace(/\n/g, '<br />');
+      const sigHtml = useSignature && signature ? renderSignatureHtml(signature) : '';
+      const htmlContent = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;">${bodyHtml}${sigHtml}</div>`;
+
+      const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+      const blobText = new Blob([plainText], { type: 'text/plain' });
+      const item = new ClipboardItem({
+        'text/html': blobHtml,
+        'text/plain': blobText,
+      });
+
+      await navigator.clipboard.write([item]);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setNotification({
+        type: 'success',
+        message: 'E-mail s formátováním a obrázkem podpisu byl zkopírován.',
+      });
+    } catch {
+      setNotification({
+        type: 'error',
+        message: 'Chyba při kopírování formátovaného e-mailu.',
+      });
+    }
+  };
+
   // Create & trigger email via mailto
   const handleCreateEmail = () => {
     setError('');
@@ -161,13 +270,11 @@ export const SpojeniUzluComponent: React.FC = () => {
       return;
     }
 
-    const czechDate = formatDateCzech(date);
-    const subject = `Prosím o předání informace o spojení dvou uzlových oblastí ${areaA}><${areaB}`;
-    const body = `Ahoj,\n\n` +
-                 `Prosím o předání informace o spojení dvou uzlových oblastí ${areaA}><${areaB}\n\n` +
-                 `Počáteční manipulace:\t\t${czechDate}\t\t${timeStart}\n` +
-                 `Poslední manipulace:\t\t${czechDate}\t\t${timeEnd}\n\n` +
-                 `Děkuji.`;
+    const subject = generateSubject();
+    let body = generateBody();
+    if (useSignature && signature) {
+      body += renderSignatureText(signature);
+    }
 
     window.location.href = `mailto:kamil.pupik@cezdistribuce.cz?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
@@ -177,7 +284,7 @@ export const SpojeniUzluComponent: React.FC = () => {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ overflowY: 'auto' }}>
       {/* Header section with live badge */}
       <div className={styles.header}>
         <div className={styles.titleGroup}>
@@ -189,6 +296,13 @@ export const SpojeniUzluComponent: React.FC = () => {
         </div>
       </div>
 
+      {/* Notification toast */}
+      {notification && (
+        <div className={`${styles.notification} ${notification.type === 'success' ? styles.notificationSuccess : styles.notificationError}`} role="alert">
+          <span>{notification.message}</span>
+          <button type="button" className={styles.notificationClose} onClick={() => setNotification(null)}>&times;</button>
+        </div>
+      )}
       {/* Error display */}
       {error && <div className={styles.errorMsg}>{error}</div>}
 
@@ -273,7 +387,6 @@ export const SpojeniUzluComponent: React.FC = () => {
             />
           </div>
         </div>
-
         <button
           type="button"
           className={styles.submitBtn}
@@ -283,7 +396,98 @@ export const SpojeniUzluComponent: React.FC = () => {
         </button>
       </div>
 
+      {/* Elektronický podpis */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255, 255, 255, 0.4)', padding: '8px 10px', borderRadius: '10px', border: '1px solid rgba(0, 0, 0, 0.08)', marginTop: '4px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.78rem', color: 'var(--md-sys-color-on-surface)' }}>
+          <input
+            type="checkbox"
+            checked={useSignature}
+            onChange={(e) => {
+              if (e.target.checked && !signature) {
+                setIsSigModalOpen(true);
+              } else {
+                setUseSignature(e.target.checked);
+              }
+            }}
+            style={{ width: '14px', height: '14px', cursor: 'pointer' }}
+          />
+          Podpis
+        </label>
+        {signature ? (
+          <span style={{ fontSize: '0.72rem', color: '#5f6368', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100px' }}>
+            ({signature.name})
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsSigModalOpen(true)}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#005cbb', fontWeight: 600, cursor: 'pointer', fontSize: '0.72rem', textDecoration: 'underline', padding: 0 }}
+          >
+            Vytvořit
+          </button>
+        )}
+      </div>
+
+      {/* Živý náhled */}
+      <div className={styles.previewContainer}>
+        <div className={styles.previewHeader}>Živý náhled</div>
+        <div className={styles.previewBox}>
+          <div className={styles.previewBody} style={{ fontWeight: 'bold', color: 'var(--md-sys-color-primary)' }}>
+            Předmět: {generateSubject()}
+          </div>
+          <div className={styles.previewDivider} />
+          <pre className={styles.previewBody}>{generateBody()}</pre>
+          {useSignature && signature && (
+            <>
+              <div className={styles.previewDivider} />
+              <div dangerouslySetInnerHTML={{ __html: renderSignatureHtml(signature) }} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Tlačítka akcí */}
+      <div className={styles.actionsGrid}>
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnPrimary}`}
+          onClick={handleCreateEmail}
+        >
+          Odeslat (Outlook)
+        </button>
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnSecondary}`}
+          onClick={copySubject}
+        >
+          Kopírovat předmět
+        </button>
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnSecondary}`}
+          onClick={copyBody}
+        >
+          Kopírovat text
+        </button>
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnSecondary}`}
+          onClick={copyFormattedEmail}
+        >
+          Kopírovat formátovaný
+        </button>
+      </div>
+
       {/* Modal Dialog for adding a new area via React Portal */}
+      {isSigModalOpen && (
+        <SignatureModal
+          onClose={() => setIsSigModalOpen(false)}
+          onSave={(saved) => {
+            setSignature(saved);
+            setUseSignature(true);
+          }}
+        />
+      )}
       {isModalOpen && createPortal(
         <div
           className={styles.modalBg}

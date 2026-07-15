@@ -19,27 +19,34 @@ export const WorkComponent: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    try {
-      const data = localStorage.getItem(W_KEY);
-      if (data) {
-        const parsed: unknown = JSON.parse(data);
-        if (isRecord(parsed)) {
-          const parsedArrival = Number(parsed.time);
-          const parsedSaldo = Number(parsed.saldo);
+    let isCurrent = true;
+    queueMicrotask(() => {
+      if (!isCurrent) return;
+      setIsMounted(true);
+      try {
+        const data = localStorage.getItem(W_KEY);
+        if (data) {
+          const parsed: unknown = JSON.parse(data);
+          if (isRecord(parsed)) {
+            const parsedArrival = Number(parsed.time);
+            const parsedSaldo = Number(parsed.saldo);
 
-          if (Number.isFinite(parsedArrival)) {
-            setArrival(clamp(Math.round(parsedArrival), 360, 480));
-          }
+            if (Number.isFinite(parsedArrival)) {
+              setArrival(clamp(Math.round(parsedArrival), 360, 480));
+            }
 
-          if (Number.isFinite(parsedSaldo)) {
-            setSaldo(clamp(parsedSaldo, -1, 1));
+            if (Number.isFinite(parsedSaldo)) {
+              setSaldo(clamp(parsedSaldo, -1, 1));
+            }
           }
         }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    });
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   const saveState = (newArrival: number, newSaldo: number) => {
