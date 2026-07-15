@@ -90,15 +90,24 @@ export const BookmarksComponent: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setBookmarks(normalizeBookmarks(JSON.parse(saved)));
-      } catch (e) {
-        console.error(e);
+    let isCurrent = true;
+    const init = async () => {
+      await Promise.resolve();
+      if (!isCurrent) return;
+      setIsMounted(true);
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          setBookmarks(normalizeBookmarks(JSON.parse(saved)));
+        } catch (e) {
+          console.error(e);
+        }
       }
-    }
+    };
+    init();
+    return () => {
+      isCurrent = false;
+    };
   }, []);
 
   const save = (newBookmarks: Bookmark[]) => {

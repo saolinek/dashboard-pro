@@ -7,6 +7,9 @@ import { ModuleConfig, moduleRegistry } from '@/core/registry';
 import { normalizeLayout, showItemInFreePosition } from '@/core/layout-utils';
 import styles from './DashboardEngine.module.css';
 
+import { SignatureModal } from '@/shared/ui/SignatureModal';
+import { EmailSignature, loadSignature, deleteSignature, renderSignatureHtml } from '@/lib/storage/signature';
+
 // Import all modules to trigger their registration
 import '@/modules/clock'; 
 import '@/modules/svatek'; 
@@ -122,6 +125,8 @@ export const DashboardEngine = () => {
   const [layout, setLayout] = useState<ModuleConfig[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [signature, setSignature] = useState<EmailSignature | null>(null);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -135,6 +140,9 @@ export const DashboardEngine = () => {
 
       setLayout(initialLayout);
       setIsLoaded(true);
+
+      const loadedSig = loadSignature();
+      setSignature(loadedSig);
 
       if (shouldSave) {
         storage.saveLayout(initialLayout);
@@ -264,9 +272,63 @@ export const DashboardEngine = () => {
                 </article>
               ))}
             </div>
+
+            {/* Elektronický podpis sekce */}
+            <section className={styles.signatureSection}>
+              <h3 className={styles.signatureTitle}>Elektronický podpis</h3>
+              <div className={styles.signatureCard}>
+                {signature ? (
+                  <>
+                    <div
+                      className={styles.signaturePreviewText}
+                      dangerouslySetInnerHTML={{ __html: renderSignatureHtml(signature) }}
+                    />
+                    <div className={styles.signatureActions}>
+                      <button
+                        type="button"
+                        className={styles.signatureBtn}
+                        onClick={() => setIsSignatureModalOpen(true)}
+                      >
+                        Upravit
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.signatureBtnDanger}
+                        onClick={() => {
+                          deleteSignature();
+                          setSignature(null);
+                        }}
+                      >
+                        Smazat
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: '13px', color: '#5f6368', fontStyle: 'italic', marginBottom: '8px' }}>
+                      Podpis není nastaven. Bude se používat jen čistý text e-mailu.
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.signatureBtn}
+                      onClick={() => setIsSignatureModalOpen(true)}
+                    >
+                      + Nastavit podpis
+                    </button>
+                  </>
+                )}
+              </div>
+            </section>
           </aside>
         )}
       </div>
+
+      {isSignatureModalOpen && (
+        <SignatureModal
+          onClose={() => setIsSignatureModalOpen(false)}
+          onSave={(saved) => setSignature(saved)}
+        />
+      )}
     </div>
   );
 };

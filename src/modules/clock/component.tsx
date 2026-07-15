@@ -7,11 +7,18 @@ export const ClockComponent: React.FC = () => {
   const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    setTime(new Date());
+    let isCurrent = true;
+    queueMicrotask(() => {
+      if (!isCurrent) return;
+      setTime(new Date());
+    });
     const interval = setInterval(() => {
       setTime(new Date());
     }, 1000);
-    return () => clearInterval(interval);
+    return () => {
+      isCurrent = false;
+      clearInterval(interval);
+    };
   }, []);
 
   if (!time) {
