@@ -226,3 +226,117 @@
 .saveBtn:hover {
   filter: brightness(0.9);
 }
+
+.previewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.previewHeader {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--md-sys-color-secondary);
+}
+
+.previewBox {
+  border-radius: var(--md-sys-shape-corner-small);
+  border: 1px dashed var(--md-sys-color-outline-variant);
+  background-color: rgba(255, 255, 255, 0.4);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--md-sys-color-on-surface);
+}
+
+.previewDivider {
+  height: 1px;
+  background-color: var(--md-sys-color-outline-variant);
+}
+
+.previewBody {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: inherit;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.btn {
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-small);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btnPrimary {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.btnPrimary:hover {
+  filter: brightness(0.9);
+}
+
+.btnSecondary {
+  background-color: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.btnSecondary:hover {
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-primary);
+}
+
+.notification {
+  padding: 8px;
+  border-radius: var(--md-sys-shape-corner-small);
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  border: 1px solid transparent;
+}
+
+.notificationSuccess {
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.notificationError {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.notificationClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  color: currentColor;
+}

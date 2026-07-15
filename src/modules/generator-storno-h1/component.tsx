@@ -2,6 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './generator-storno-h1.module.css';
+import { SignatureModal } from '@/shared/ui/SignatureModal';
+import {
+  EmailSignature,
+  loadSignature,
+  renderSignatureHtml,
+  renderSignatureText,
+} from '@/lib/storage/signature';
 
 // Výchozí seznam příjemců
 const DEFAULT_KOMU = `12_A86100 - oddělení Péče o veřejný sektor <12_A86100@cezdistribuce.cz>;
@@ -36,6 +43,9 @@ interface FormState {
 export const StornoH1Generator: React.FC = () => {
   // Inicializace stavu
   const [reportNumber, setReportNumber] = useState('');
+  const [signature, setSignature] = useState<EmailSignature | null>(null);
+  const [useSignature, setUseSignature] = useState(false);
+  const [isSigModalOpen, setIsSigModalOpen] = useState(false);
   const [shutdownDate, setShutdownDate] = useState(() => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -125,6 +135,12 @@ export const StornoH1Generator: React.FC = () => {
       if (isCurrent) {
         loadState();
         setIsMounted(true);
+        // Načíst podpis
+        const sig = loadSignature();
+        setSignature(sig);
+        if (sig) {
+          setUseSignature(true);
+        }
       }
     };
     init();
@@ -263,7 +279,10 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
   const copyBody = async (): Promise<void> => {
     setLoadingButton('body');
     try {
-      const body = generateBody();
+      let body = generateBody();
+      if (useSignature && signature) {
+        body += renderSignatureText(signature);
+      }
       await navigator.clipboard.writeText(body);
       // Krátké zpoždění pro plynulý loading efekt
       await new Promise((resolve) => setTimeout(resolve, 600));
@@ -281,6 +300,38 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     }
   };
 
+  // Kopírovat formátovaný e-mail (copyFormattedEmail)
+  const copyFormattedEmail = async (): Promise<void> => {
+    setLoadingButton('body');
+    try {
+      const plainText = generateBody() + (useSignature && signature ? renderSignatureText(signature) : '');
+      const bodyHtml = generateBody().replace(/\n/g, '<br />');
+      const sigHtml = useSignature && signature ? renderSignatureHtml(signature) : '';
+      const htmlContent = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;">${bodyHtml}${sigHtml}</div>`;
+
+      const blobHtml = new Blob([htmlContent], { type: 'text/html' });
+      const blobText = new Blob([plainText], { type: 'text/plain' });
+      const item = new ClipboardItem({
+        'text/html': blobHtml,
+        'text/plain': blobText,
+      });
+
+      await navigator.clipboard.write([item]);
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      setNotification({
+        type: 'success',
+        message: 'E-mail s formátováním a obrázkem podpisu byl zkopírován.',
+      });
+    } catch {
+      setNotification({
+        type: 'error',
+        message: 'Chyba při kopírování formátovaného e-mailu.',
+      });
+    } finally {
+      setLoadingButton(null);
+    }
+  };
+
   // Otevření Outlooku pomocí mailto linku (openOutlook)
   const openOutlook = async (): Promise<void> => {
     if (!validate()) return;
@@ -288,7 +339,10 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     setLoadingButton('outlook');
     try {
       const subject = generateSubject();
-      const body = generateBody();
+      let body = generateBody();
+      if (useSignature && signature) {
+        body += renderSignatureText(signature);
+      }
 
       // Vyčištění řádků příjemců pro formát mailto (sloučení na jeden řádek, odstranění konců řádků)
       const cleanTo = recipientsTo.replace(/\r?\n|\r/g, ' ').trim();
@@ -530,6 +584,38 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
         </fieldset>
       </form>
 
+      {/* Elektronický podpis */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255, 255, 255, 0.4)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0, 0, 0, 0.1)', marginTop: '4px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', color: 'var(--md-sys-color-on-surface)' }}>
+          <input
+            type="checkbox"
+            checked={useSignature}
+            onChange={(e) => {
+              if (e.target.checked && !signature) {
+                setIsSigModalOpen(true);
+              } else {
+                setUseSignature(e.target.checked);
+              }
+            }}
+            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+          />
+          Vložit elektronický podpis
+        </label>
+        {signature ? (
+          <span style={{ fontSize: '0.8rem', color: '#5f6368', fontStyle: 'italic' }}>
+            ({signature.name})
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsSigModalOpen(true)}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#005cbb', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline', padding: 0 }}
+          >
+            Vytvořit podpis
+          </button>
+        )}
+      </div>
+
       {/* Živý náhled */}
       <div className={styles.previewContainer}>
         <div className={styles.previewHeader}>ŽIVÝ NÁHLED</div>
@@ -540,11 +626,17 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
           </div>
           <div className={styles.previewDivider} />
           <pre className={`${styles.previewBody} selectable`}>{generateBody()}</pre>
+          {useSignature && signature && (
+            <>
+              <div className={styles.previewDivider} />
+              <div dangerouslySetInnerHTML={{ __html: renderSignatureHtml(signature) }} />
+            </>
+          )}
         </div>
       </div>
 
       {/* Tlačítka */}
-      <div className={styles.actionsGrid}>
+      <div className={styles.actionsGrid} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
         <button
           type="button"
           onClick={openOutlook}
@@ -595,13 +687,41 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
 
         <button
           type="button"
+          onClick={copyFormattedEmail}
+          disabled={loadingButton !== null}
+          className={`${styles.btn} ${styles.btnSecondary}`}
+          style={{ gridColumn: 'span 1' }}
+        >
+          {loadingButton === 'body' ? (
+            <>
+              <span className={styles.spinner} />
+              Kopíruji...
+            </>
+          ) : (
+            'Kopírovat s formátováním'
+          )}
+        </button>
+
+        <button
+          type="button"
           onClick={clearForm}
           disabled={loadingButton !== null}
           className={`${styles.btn} ${styles.btnDanger}`}
+          style={{ gridColumn: '1 / -1' }}
         >
           Vyčistit formulář
         </button>
       </div>
+
+      {isSigModalOpen && (
+        <SignatureModal
+          onClose={() => setIsSigModalOpen(false)}
+          onSave={(saved) => {
+            setSignature(saved);
+            setUseSignature(true);
+          }}
+        />
+      )}
     </div>
   );
 };
