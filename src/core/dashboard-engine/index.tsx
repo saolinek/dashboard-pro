@@ -77,11 +77,20 @@ function getInitialLayout() {
       })
       .map(item => {
         const defaults = defaultConfigs[item.type];
-        if (defaults && (item.w !== defaults.w || item.h !== defaults.h)) {
-          needsSave = true;
-          return { ...item, w: defaults.w, h: defaults.h };
+        let itemChanged = false;
+        const updatedItem = { ...item };
+        if (updatedItem.w === undefined && defaults) {
+          updatedItem.w = defaults.w;
+          itemChanged = true;
         }
-        return item;
+        if (updatedItem.h === undefined && defaults) {
+          updatedItem.h = defaults.h;
+          itemChanged = true;
+        }
+        if (itemChanged) {
+          needsSave = true;
+        }
+        return updatedItem;
       });
 
     const existingTypes = new Set(filteredLayout.map(item => item.type));
