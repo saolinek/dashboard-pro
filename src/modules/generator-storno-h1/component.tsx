@@ -179,9 +179,7 @@ export const StornoH1Generator: React.FC = () => {
     const cleanMunicipality = municipality.trim() || '...';
     const cleanJustification = justification.trim() || '...';
 
-    return `Dobrý den,
-
-hlášení H1-${cleanNum || 'xxxxxxxxxxxx'} bylo stornováno v době kratší než 7 dní před plánovanou odstávkou.
+    return `Dobrý den, hlášení H1-${cleanNum || 'xxxxxxxxxxxx'} bylo stornováno v době kratší než 7 dní před plánovanou odstávkou.
 
 Storno: H1-${cleanNum || 'xxxxxxxxxxxx'}
 Oblast: ${cleanRegion}
@@ -264,12 +262,36 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     setLoadingButton('body');
     try {
       const body = generateBody();
-      await navigator.clipboard.writeText(body);
+      const lines = body.split('\n');
+      const firstLine = lines[0];
+      const restLines = lines.slice(1).join('\n');
+
+      // Vytvoříme HTML verzi pro možnost vložení jako formátovaný text (např. do Outlooku)
+      const restHtml = restLines
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br />');
+      const htmlString = `<b>${firstLine}</b><br />${restHtml}`;
+
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        const textBlob = new Blob([body], { type: 'text/plain' });
+        const htmlBlob = new Blob([htmlString], { type: 'text/html' });
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': textBlob,
+            'text/html': htmlBlob,
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(body);
+      }
+
       // Krátké zpoždění pro plynulý loading efekt
       await new Promise((resolve) => setTimeout(resolve, 600));
       setNotification({
         type: 'success',
-        message: 'Tělo e-mailu bylo zkopírováno do schránky.',
+        message: 'Tělo e-mailu bylo zkopírováno do schránky (včetně formátování).',
       });
     } catch {
       setNotification({
@@ -539,7 +561,20 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
             <span className="selectable">{generateSubject()}</span>
           </div>
           <div className={styles.previewDivider} />
-          <pre className={`${styles.previewBody} selectable`}>{generateBody()}</pre>
+          <div className={`${styles.previewBody} selectable`}>
+            {(() => {
+              const bodyText = generateBody();
+              const lines = bodyText.split('\n');
+              const firstLine = lines[0];
+              const restLines = lines.slice(1).join('\n');
+              return (
+                <>
+                  <strong style={{ fontWeight: 'bold', display: 'block' }}>{firstLine}</strong>
+                  <pre style={{ margin: 0, fontFamily: 'inherit', fontSize: 'inherit', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{restLines}</pre>
+                </>
+              );
+            })()}
+          </div>
         </div>
       </div>
 
