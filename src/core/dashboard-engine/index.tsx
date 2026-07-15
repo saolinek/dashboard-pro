@@ -18,6 +18,7 @@ import '@/modules/odstavky';
 import '@/modules/odstavka-timer';
 import '@/modules/vyplata';
 import '@/modules/svatek-tyden';
+import '@/modules/spojeni-uzlu';
 
 const registeredTypes = [
   'clock',
@@ -29,7 +30,8 @@ const registeredTypes = [
   'inflace',
   'odstavky',
   'odstavka-timer',
-  'vyplata'
+  'vyplata',
+  'spojeni-uzlu'
 ];
 
 const defaultConfigs: Record<string, { w: number; h: number }> = {
@@ -42,7 +44,8 @@ const defaultConfigs: Record<string, { w: number; h: number }> = {
   inflace: { w: 2, h: 2 },
   odstavky: { w: 2, h: 1 },
   'odstavka-timer': { w: 2, h: 2 },
-  vyplata: { w: 2, h: 1 }
+  vyplata: { w: 2, h: 1 },
+  'spojeni-uzlu': { w: 2, h: 2 }
 };
 
 function createDefaultLayout() {
