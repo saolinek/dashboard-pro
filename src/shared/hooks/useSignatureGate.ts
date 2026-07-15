@@ -1,17 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { loadSignature, saveSignature, hasValidSignature } from '@/lib/storage/signature';
 
 export function useSignatureGate() {
-  const [signatureHtml, setSignatureHtml] = useState<string | null>(null);
+  const [signatureHtml, setSignatureHtml] = useState<string | null>(() => loadSignature());
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editorRequired, setEditorRequired] = useState(false);
   const pendingRef = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    setSignatureHtml(loadSignature());
-  }, []);
 
   const refreshSignature = useCallback(() => {
     setSignatureHtml(loadSignature());

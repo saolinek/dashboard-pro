@@ -6,40 +6,10 @@
   gap: 8px;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.titleGroup {
-  display: flex;
-  flex-direction: column;
-}
-
 .title {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--md-sys-color-on-surface);
-}
-
-.subtitle {
-  font-size: 0.72rem;
-  color: var(--md-sys-color-secondary);
-}
-
-.badge {
-  display: inline-block;
-  background-color: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-primary);
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  white-space: nowrap;
 }
 
 .errorMsg {
@@ -81,11 +51,6 @@
   color: var(--md-sys-color-secondary);
 }
 
-.selectBtnGroup {
-  display: flex;
-  gap: 4px;
-}
-
 .select, .input {
   width: 100%;
   height: 32px;
@@ -105,24 +70,23 @@
   box-shadow: 0 0 0 2px rgba(var(--md-sys-color-primary-rgb), 0.15);
 }
 
-.addBtn {
-  width: 32px;
+.addAreaBtn {
+  width: 100%;
   height: 32px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   font-weight: 600;
   background-color: var(--md-sys-color-surface-variant);
   color: var(--md-sys-color-on-surface);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  border: 1px dashed var(--md-sys-color-outline-variant);
   border-radius: var(--md-sys-shape-corner-small);
   cursor: pointer;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.addBtn:hover {
+.addAreaBtn:hover {
   background-color: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-primary);
 }

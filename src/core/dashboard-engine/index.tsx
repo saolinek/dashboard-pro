@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { LayoutManager } from '@/core/layout-manager';
 import { storage } from '@/lib/storage';
 import { ModuleConfig, moduleRegistry } from '@/core/registry';
@@ -23,21 +23,32 @@ import '@/modules/vyplata';
 import '@/modules/svatek-tyden';
 import '@/modules/spojeni-uzlu';
 import '@/modules/generator-storno-h1';
+import '@/modules/odstavka-deadline';
 
-const registeredTypes = [
-  'clock',
-  'svatek',
-  'svatek-tyden',
-  'bookmarks',
-  'work',
-  'prepocet-i',
-  'inflace',
-  'odstavky',
-  'odstavka-timer',
-  'vyplata',
-  'spojeni-uzlu',
-  'generator-storno-h1'
-];
+type Tab = 'tools' | 'emails';
+
+const TAB_LABELS: Record<Tab, string> = {
+  tools: 'Nástroje',
+  emails: 'Emaily',
+};
+
+const moduleCategory: Record<string, Tab> = {
+  clock: 'tools',
+  svatek: 'tools',
+  'svatek-tyden': 'tools',
+  bookmarks: 'tools',
+  work: 'tools',
+  'prepocet-i': 'tools',
+  inflace: 'tools',
+  odstavky: 'tools',
+  'odstavka-timer': 'tools',
+  vyplata: 'tools',
+  'odstavka-deadline': 'tools',
+  'spojeni-uzlu': 'emails',
+  'generator-storno-h1': 'emails',
+};
+
+const registeredTypes = Object.keys(moduleCategory);
 
 const defaultConfigs: Record<string, { w: number; h: number }> = {
   clock: { w: 2, h: 1 },
@@ -51,7 +62,8 @@ const defaultConfigs: Record<string, { w: number; h: number }> = {
   'odstavka-timer': { w: 2, h: 2 },
   vyplata: { w: 2, h: 1 },
   'spojeni-uzlu': { w: 4, h: 3 },
-  'generator-storno-h1': { w: 4, h: 5 }
+  'generator-storno-h1': { w: 4, h: 5 },
+  'odstavka-deadline': { w: 2, h: 1 }
 };
 
 function createDefaultLayout() {
@@ -109,22 +121,55 @@ function getInitialLayout() {
           h: defaultConfigs[type]?.h || 1
         }))
       ];
-      const { layout: updated } = normalizeLayout(withMissing);
+      const { layout: updated } = normalizeByCategory(withMissing);
       return { layout: updated, shouldSave: true };
     }
 
-    const { layout: positionedLayout, changed } = normalizeLayout(filteredLayout);
+    const { layout: positionedLayout, changed } = normalizeByCategory(filteredLayout);
     return { layout: positionedLayout, shouldSave: changed };
   }
 
-  const { layout: positionedLayout } = normalizeLayout(createDefaultLayout());
+  const { layout: positionedLayout } = normalizeByCategory(createDefaultLayout());
   return { layout: positionedLayout, shouldSave: true };
+}
+
+function normalizeByCategory(layout: ModuleConfig[]) {
+  const tabs: Tab[] = ['tools', 'emails'];
+  let result: ModuleConfig[] = [];
+  let anyChanged = false;
+
+  for (const tab of tabs) {
+    const group = layout.filter(item => moduleCategory[item.type] === tab);
+
+    if (group.length > 0) {
+      const { layout: normalized, changed } = normalizeLayout(group);
+      result = result.concat(normalized);
+
+      if (changed) {
+        anyChanged = true;
+      }
+    }
+  }
+
+  const unknown = layout.filter(item => !moduleCategory[item.type]);
+
+  if (unknown.length > 0) {
+    const { layout: normalized, changed } = normalizeLayout(unknown);
+    result = result.concat(normalized);
+
+    if (changed) {
+      anyChanged = true;
+    }
+  }
+
+  return { layout: result, changed: anyChanged };
 }
 
 export const DashboardEngine = () => {
   const [layout, setLayout] = useState<ModuleConfig[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>('tools');
   const [signature, setSignature] = useState<string | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
 
@@ -159,7 +204,7 @@ export const DashboardEngine = () => {
 
     setLayout((currentLayout) => {
       const mergedLayout = currentLayout.map((item) => visibleById.get(item.id) ?? item);
-      const { layout: normalizedLayout } = normalizeLayout(mergedLayout);
+      const { layout: normalizedLayout } = normalizeByCategory(mergedLayout);
       storage.saveLayout(normalizedLayout);
       return normalizedLayout;
     });
@@ -167,7 +212,7 @@ export const DashboardEngine = () => {
 
   const updateLayout = (updater: (currentLayout: ModuleConfig[]) => ModuleConfig[]) => {
     setLayout((currentLayout) => {
-      const { layout: normalizedLayout } = normalizeLayout(updater(currentLayout));
+      const { layout: normalizedLayout } = normalizeByCategory(updater(currentLayout));
       storage.saveLayout(normalizedLayout);
       return normalizedLayout;
     });
@@ -194,20 +239,37 @@ export const DashboardEngine = () => {
   };
 
   const handleReset = () => {
-    const { layout: positionedLayout } = normalizeLayout(createDefaultLayout());
+    const { layout: positionedLayout } = normalizeByCategory(createDefaultLayout());
     setLayout(positionedLayout);
     storage.saveLayout(positionedLayout);
   };
+
+const visibleLayout = useMemo(() =>
+    layout.filter(
+      (item) => !item.hidden && moduleCategory[item.type] === activeTab
+    ),
+  [layout, activeTab]);
 
   if (!isLoaded) {
     return <div style={{ padding: 20 }}>Načítám dashboard...</div>;
   }
 
-  const visibleLayout = layout.filter((item) => !item.hidden);
 
   return (
     <div className={styles.dashboard}>
-      <div className={styles.toolbar}>
+      <div className={styles.header}>
+        <div className={styles.tabs}>
+          {(Object.entries(TAB_LABELS) as [Tab, string][]).map(([tab, label]) => (
+            <button
+              key={tab}
+              type="button"
+              className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className={styles.settingsButton}

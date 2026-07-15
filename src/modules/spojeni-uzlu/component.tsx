@@ -126,9 +126,6 @@ export const SpojeniUzluComponent: React.FC = () => {
     saveSession(areaA, areaB, date, timeStart, val);
   };
 
-  // Modern badge display
-  const badgeText = `${areaA || '---'}><${areaB || '---'}`;
-
   // Add new node area
   const handleAddNewArea = () => {
     const val = newAreaText.trim().toUpperCase();
@@ -219,16 +216,7 @@ export const SpojeniUzluComponent: React.FC = () => {
 
   return (
     <div className={styles.container} style={{ overflowY: 'auto' }}>
-      {/* Header section with live badge */}
-      <div className={styles.header}>
-        <div className={styles.titleGroup}>
-          <div className={styles.title}>Spojení uzlových oblastí</div>
-          <div className={styles.subtitle}>E-mail o provozních změnách</div>
-        </div>
-        <div className={styles.badge} title="Vybrané spojení">
-          {badgeText}
-        </div>
-      </div>
+      <div className={styles.title}>Spojení uzlových oblastí</div>
 
       {/* Notification toast */}
       {notification && (
@@ -245,30 +233,17 @@ export const SpojeniUzluComponent: React.FC = () => {
         <div className={styles.row}>
           <div className={styles.formGroup}>
             <label className={styles.label}>Oblast A</label>
-            <div className={styles.selectBtnGroup}>
-              <select
-                value={areaA}
-                onChange={(e) => handleAreaAChange(e.target.value)}
-                className={styles.select}
-              >
-                {areas.map((item) => (
-                  <option key={`a-${item}`} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                className={styles.addBtn}
-                onClick={() => {
-                  setError('');
-                  setIsModalOpen(true);
-                }}
-                title="Přidat oblast"
-              >
-                +
-              </button>
-            </div>
+            <select
+              value={areaA}
+              onChange={(e) => handleAreaAChange(e.target.value)}
+              className={styles.select}
+            >
+              {areas.map((item) => (
+                <option key={`a-${item}`} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className={styles.formGroup}>
@@ -286,6 +261,18 @@ export const SpojeniUzluComponent: React.FC = () => {
             </select>
           </div>
         </div>
+
+        <button
+          type="button"
+          className={styles.addAreaBtn}
+          onClick={() => {
+            setError('');
+            setIsModalOpen(true);
+          }}
+          title="Přidat oblast"
+        >
+          + Přidat oblast
+        </button>
 
         <div className={styles.formGroup}>
           <label className={styles.label}>Datum manipulace</label>
