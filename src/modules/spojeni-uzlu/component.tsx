@@ -163,9 +163,11 @@ export const SpojeniUzluComponent: React.FC = () => {
     return [
       'Ahoj,',
       '',
-      `Prosím o předání informace o spojení dvou uzlových oblastí\t${areas}`,
-      `Počáteční manipulace:\t\t\t\t\t\t\t\t\t${czechDate}\t${startTime}`,
-      `Poslední manipulace:\t\t\t\t\t\t\t\t\t${czechDate}\t${endTime}`,
+      `Prosím o předání informace o spojení dvou uzlových oblastí       ${areas}`,
+      '',
+      `Počáteční manipulace:                                                                                   ${czechDate}       ${startTime}`,
+      '',
+      `Poslední manipulace:                                                                                      ${czechDate}       ${endTime}`,
       '',
       'Děkuji',
     ].join('\n');
