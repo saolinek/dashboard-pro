@@ -3,9 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './spojeni-uzlu.module.css';
-import { SignatureEditor } from '@/shared/ui/SignatureEditor';
-import { getSignatureHtml, getSignaturePlainText } from '@/lib/storage/signature';
-import { useSignatureGate } from '@/shared/hooks/useSignatureGate';
 
 const DEFAULT_AREAS = ['ORLU', 'ALB_'];
 
@@ -29,15 +26,6 @@ export const SpojeniUzluComponent: React.FC = () => {
   const [error, setError] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAreaText, setNewAreaText] = useState('');
-
-  const {
-    signatureHtml,
-    isEditorOpen,
-    editorRequired,
-    withSignature,
-    closeEditor,
-    handleSave,
-  } = useSignatureGate();
   const [notification, setNotification] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   // Hydration & Initial loading
   useEffect(() => {
@@ -202,12 +190,10 @@ export const SpojeniUzluComponent: React.FC = () => {
       return;
     }
 
-    withSignature(() => {
     const subject = generateSubject();
-    const body = generateBody() + getSignaturePlainText();
+    const body = generateBody();
 
     window.location.href = `mailto:kamil.pupik@cezdistribuce.cz?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    });
   };
 
   if (!isMounted) {
@@ -326,25 +312,12 @@ export const SpojeniUzluComponent: React.FC = () => {
           </div>
           <div className={styles.previewDivider} />
           <pre className={styles.previewBody}>{generateBody()}</pre>
-          {signatureHtml && (
-            <>
-              <div className={styles.previewDivider} />
-              <div dangerouslySetInnerHTML={{ __html: getSignatureHtml() }} />
-            </>
-          )}
         </div>
       </div>
 
 
 
       {/* Modal Dialog for adding a new area via React Portal */}
-      {isEditorOpen && (
-        <SignatureEditor
-          required={editorRequired}
-          onClose={closeEditor}
-          onSave={handleSave}
-        />
-      )}
       {isModalOpen && createPortal(
         <div
           className={styles.modalBg}

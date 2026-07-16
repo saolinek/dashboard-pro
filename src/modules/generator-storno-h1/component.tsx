@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './generator-storno-h1.module.css';
-import { SignatureEditor } from '@/shared/ui/SignatureEditor';
-import { getSignatureHtml, getSignaturePlainText } from '@/lib/storage/signature';
-import { useSignatureGate } from '@/shared/hooks/useSignatureGate';
 
 // Výchozí seznam příjemců
 const DEFAULT_KOMU = `12_A86100 - oddělení Péče o veřejný sektor <12_A86100@cezdistribuce.cz>;
@@ -58,14 +55,6 @@ export const StornoH1Generator: React.FC = () => {
   const [recipientsCc, setRecipientsCc] = useState(DEFAULT_KOPIE);
   const [cancellationPeriod, setCancellationPeriod] = useState('7');
 
-  const {
-    signatureHtml,
-    isEditorOpen,
-    editorRequired,
-    withSignature,
-    closeEditor,
-    handleSave,
-  } = useSignatureGate();
   // UX & Validace
   const [isMounted, setIsMounted] = useState(false);
   const [validatedOnce, setValidatedOnce] = useState(false);
@@ -290,11 +279,10 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
   const openOutlook = async (): Promise<void> => {
     if (!validate()) return;
 
-    withSignature(async () => {
     setLoadingButton('outlook');
     try {
       const subject = generateSubject();
-      const body = generateBody() + getSignaturePlainText();
+      const body = generateBody();
 
       // Pokusíme se také zkopírovat formátovaný text do schránky (pro případ ručního vložení v Outlooku/Gmailu)
       try {
@@ -306,8 +294,7 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/\n/g, '<br />');
-        const sigHtml = getSignatureHtml();
-        const htmlString = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;"><b>${firstLine}</b><br />${restHtml}${sigHtml}</div>`;
+        const htmlString = `<div style="font-family: Arial, sans-serif; font-size: 13px; color: #1c1b1f;"><b>${firstLine}</b><br />${restHtml}</div>`;
 
         if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
           const textBlob = new Blob([body], { type: 'text/plain' });
@@ -347,7 +334,6 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
     } finally {
       setLoadingButton(null);
     }
-    });
   };
 
 
@@ -580,12 +566,6 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
               );
             })()}
           </div>
-          {signatureHtml && (
-            <>
-              <div className={styles.previewDivider} />
-              <div dangerouslySetInnerHTML={{ __html: getSignatureHtml() }} />
-            </>
-          )}
         </div>
       </div>
 
@@ -607,14 +587,6 @@ Zákazníci: B-${customersB}, C-${customersC}, D-${customersD}`;
           )}
         </button>
       </div>
-
-      {isEditorOpen && (
-        <SignatureEditor
-          required={editorRequired}
-          onClose={closeEditor}
-          onSave={handleSave}
-        />
-      )}
     </div>
   );
 };
